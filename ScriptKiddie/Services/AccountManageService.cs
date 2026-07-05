@@ -14,7 +14,7 @@ class AccountManageService
     private readonly HttpClientHandler httpClientHandler;
 
     private readonly UIALoginService uialoginService;
-    private CourseSelectService courseSelectService;
+    private readonly CourseSelectService courseSelectService;
 
     private bool hasLogin = false;
 
@@ -46,6 +46,11 @@ class AccountManageService
     public async Task<CourseResponse?> GetSelectableCoursesAsync()
     {
         return await courseSelectService.GetSelectableCoursesAsync();
+    }
+
+    public async Task<List<CourseItem>?> GetSelectedCoursesAsync()
+    {
+        return await courseSelectService.GetSelectedCoursesAsync();
     }
 
     public async Task<bool> AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)

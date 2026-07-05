@@ -118,84 +118,84 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EmptyCookieWarning" xml:space="preserve">
-    <value>警告：使用 Cookie 选项已启用，但是 httpClientHandler.CookieContainer 不包含任何内容。</value>
+    <value>Warning: Use cookie option is enabled, but httpClientHandler.CookieContainer do not have any cookie.</value>
   </data>
   <data name="EnterPasswordPlaceholder" xml:space="preserve">
-    <value>请输入密码</value>
+    <value>Please enter password</value>
   </data>
   <data name="EnterUsernamePlaceholder" xml:space="preserve">
-    <value>请输入学号</value>
+    <value>Please enter student ID</value>
   </data>
   <data name="Login" xml:space="preserve">
-    <value>登录</value>
+    <value>Login</value>
   </data>
   <data name="LoginTitle" xml:space="preserve">
-    <value>选择一项</value>
+    <value>Choose an option</value>
   </data>
   <data name="UIA_Description" xml:space="preserve">
-    <value>在广东工业大学统一身份认证中心登录账户</value>
+    <value>Login your account with gdut unified identity authentication center</value>
   </data>
   <data name="UIA_Name" xml:space="preserve">
-    <value>广工统一身份认证中心登录</value>
+    <value>Login with gdut unified identity authenticaton center</value>
   </data>
   <data name="UIA_UsernameOrPasswordIncorrect" xml:space="preserve">
-    <value>您提供的用户名或密码有误或账号未激活(首次登录要先激活账号)。</value>
+    <value>Username or password is incorrect</value>
   </data>
   <data name="UIA_UsernameNotValidError" xml:space="preserve">
-    <value>该账号非常用账号或用户名密码有误</value>
+    <value>This account is not common account or username or password is incorrect</value>
   </data>
   <data name="UIA_CannotExtractExecutionOrEncryptSaltError" xml:space="preserve">
-    <value>无法从页面中提取执行参数或加密盐值。</value>
+    <value>Cannot extract execution or encrypt salt in page. Login failed.</value>
   </data>
   <data name="UIA_EnableRememberMe" xml:space="preserve">
-    <value>你已开启七天内免登录选项</value>
+    <value>You have enabled remember me option.</value>
   </data>
   <data name="AccountNameSuccess" xml:space="preserve">
-    <value>成功获取到账户姓名：{0}</value>
+    <value>Successfully get account name: {0}</value>
   </data>
   <data name="UIA_ValidSession" xml:space="preserve">
-    <value>您有一个有效会话。无需登录。</value>
+    <value>You have a valid session. No need to login.</value>
   </data>
   <data name="PageRedirectedToOtherUrl" xml:space="preserve">
-    <value>当前页面被重定向到了其他页面：{0}</value>
+    <value>Current page is redirected to outside page: {0}</value>
   </data>
   <data name="LogoutFailed" xml:space="preserve">
-    <value>注销失败。</value>
+    <value>Logout failed.</value>
   </data>
   <data name="UIA_LoadCookieLoginFailedWarning" xml:space="preserve">
-    <value>警告：加载 cookie 选项已启用，但是登录失败</value>
+    <value>Warning: Load cookie option is enabled but could not login in.</value>
   </data>
   <data name="LoginSuccess" xml:space="preserve">
-    <value>登录成功。</value>
+    <value>Login Success.</value>
   </data>
   <data name="AutoLoginSuccess" xml:space="preserve">
-    <value>自动登录成功</value>
+    <value>Auto-login successful</value>
   </data>
   <data name="UsernameNotValidMessage" xml:space="preserve">
-    <value>请输入有效学号</value>
+    <value>Please enter valid username</value>
   </data>
   <data name="PasswordNotValidMessage" xml:space="preserve">
-    <value>请输入有效密码</value>
+    <value>Please enter valid password</value>
   </data>
-  <data name="BeginLogining" xml:space="preserve">
-    <value>开始登录</value>
+  <data name="BeginLoggingIn" xml:space="preserve">
+    <value>Begin logging in</value>
   </data>
   <data name="SendPost" xml:space="preserve">
-    <value>发送 Post  请求</value>
+    <value>Send post request</value>
   </data>
   <data name="UIA_WrongUsernameOrPasswordMessage" xml:space="preserve">
-    <value>用户名或密码错误。登录失败。</value>
+    <value>Username or password wrong. Login failed</value>
   </data>
   <data name="UIA_BuildLoginData" xml:space="preserve">
-    <value>正在构建登录数据</value>
+    <value>Building login data</value>
   </data>
   <data name="UIA_ExtractValueFailed" xml:space="preserve">
-    <value>提取值失败：</value>
+    <value>Extract Value Failed: </value>
   </data>
   <data name="LoginFailedForUnknownReason" xml:space="preserve">
-    <value>未知原因引发错误。登录失败。</value>
+    <value>Error caused by unknown reasons. Login failed.</value>
   </data>
   <data name="UIA_CookieContentEmptyError" xml:space="preserve">
-    <value>加载 Cookie 选项已启用，但是输入的 Cookie 内容是空的。登录失败。</value>
+    <value>Load cookie option is enabled but cookie content is empty. Login failed.</value>
   </data>
 </root>

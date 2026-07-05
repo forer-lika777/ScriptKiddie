@@ -161,36 +161,55 @@ if (!preLoginSuccess)
     }
 }
 
-var courseResponse = await accountService.GetSelectableCoursesAsync();
+var selectableCourseResponse = await accountService.GetSelectableCoursesAsync();
 
-if (courseResponse == null) return;
+if (selectableCourseResponse == null) return;
 
-Console.WriteLine("Total courses: " + courseResponse.Total);
+Console.WriteLine("Total courses: " + selectableCourseResponse.Total);
 
-for (int i = 0; i < courseResponse.Rows.Count; i++)
+for (int i = 0; i < selectableCourseResponse.Rows.Count; i++)
 {
-    var course = courseResponse.Rows[i];
-    Console.WriteLine($"[{i + 1}] " + course.ToString());
+    var course = selectableCourseResponse.Rows[i];
+    Console.WriteLine($"  [{i + 1}] " + course.ToString());
+}
+
+var selectedCourses = await accountService.GetSelectedCoursesAsync();
+
+if (selectedCourses == null) return;
+
+if (selectedCourses.Count > 0)
+{
+    Console.WriteLine("Selected courses: " + selectedCourses.Count);
+
+    for (int i = 0; i < selectedCourses.Count; i++)
+    {
+        var course = selectedCourses[i];
+        Console.WriteLine($"  [{i + 1}] " + course.ToString());
+    }
+}
+else
+{
+    Console.WriteLine("No Selected courses found.");
 }
 
 while (true)
 {
-    Console.Write("Select an index in the list to spcify the course to select: ");
+    Console.Write("Select an index in the list to specify the course to select: ");
 
     string indexStr = Console.ReadLine();
 
     if (int.TryParse(indexStr, out int index))
     {
         index--;
-        if (index < 0 || index >= courseResponse.Rows.Count)
+        if (index < 0 || index >= selectableCourseResponse.Rows.Count)
         {
-            Console.WriteLine($"Index out of range. Total courses count: {courseResponse.Rows.Count}");
+            Console.WriteLine($"Index out of range. Total courses count: {selectableCourseResponse.Rows.Count}");
             continue;
         }
 
-        var course = courseResponse.Rows[index];
+        var course = selectableCourseResponse.Rows[index];
 
-        Console.Write($"This will be the course you will select: {course.ToString()}. Continue? (y/n) ");
+        Console.Write($"This will be the course to select: {course.ToString()}. Confirmed? (y/n) ");
 
         string input = Console.ReadLine();
 
@@ -237,9 +256,7 @@ while (true)
     }
     else
     {
-        Console.WriteLine("The content you input is not a number.");
+        Console.WriteLine("The content you entered is not a number.");
         continue;
     }
-
-    break;
 }

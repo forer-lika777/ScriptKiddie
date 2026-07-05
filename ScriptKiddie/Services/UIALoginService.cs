@@ -42,7 +42,7 @@ public class UIALoginService : ILoginService
     {
         try
         {
-            logger.LogDebug(AccountServiceStr.BeginLogining);
+            logger.LogDebug(AccountServiceStr.BeginLoggingIn);
 
             if (httpClientHandler.CookieContainer.Count == 0 && loginOption.LoadCookie)
             {

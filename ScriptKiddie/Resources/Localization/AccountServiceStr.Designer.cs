@@ -79,11 +79,11 @@ namespace Script_Kiddie.Resources.Localization {
         }
         
         /// <summary>
-        ///   查找类似 Begin logining 的本地化字符串。
+        ///   查找类似 Begin logging in 的本地化字符串。
         /// </summary>
-        internal static string BeginLogining {
+        internal static string BeginLoggingIn {
             get {
-                return ResourceManager.GetString("BeginLogining", resourceCulture);
+                return ResourceManager.GetString("BeginLoggingIn", resourceCulture);
             }
         }
         
@@ -250,7 +250,7 @@ namespace Script_Kiddie.Resources.Localization {
         }
         
         /// <summary>
-        ///   查找类似 Login with gdut unified identity authenticaiton center 的本地化字符串。
+        ///   查找类似 Login with gdut unified identity authenticaton center 的本地化字符串。
         /// </summary>
         internal static string UIA_Name {
             get {

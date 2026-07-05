@@ -25,12 +25,6 @@ class CourseSelectService
     private CourseResponse? selectableCourses = null;
     private List<CourseItem>? selectedCourses = null;
 
-    private static readonly JsonSerializerOptions jsonOptions = new()
-    {
-        TypeInfoResolver = CourseResponseJsonContext.Default,
-        PropertyNameCaseInsensitive = true
-    };
-
     public CourseSelectService(HttpClient httpClient, HttpClientHandler httpClientHandler, ILogger<CourseSelectService> logger)
     {
         this.httpClient = httpClient;
@@ -260,7 +254,7 @@ class CourseSelectService
 
         if (delay.TotalMilliseconds > 0)
         {
-            logger.LogDebug($"Course select will start at {selectTime}. Waiting {delay.TotalSeconds:F1} seconds to start select...");
+            logger.LogDebug($"Course select will start at {selectTime}. Waiting {delay.TotalSeconds:F1} seconds to start selecting...");
             await Task.Delay(delay, cancellationToken);
         }
         else
