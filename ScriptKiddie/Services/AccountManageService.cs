@@ -10,35 +10,28 @@ namespace Script_Kiddie.Services;
 
 class AccountManageService
 {
-    private readonly HttpClient httpClient;
-    private readonly HttpClientHandler httpClientHandler;
 
-    private readonly UIALoginService uialoginService;
+    private readonly UIALoginService uiaLoginService;
     private readonly CourseSelectService courseSelectService;
 
     private bool hasLogin = false;
 
-    public AccountManageService(IServiceProvider provider)
+    public AccountManageService(UIALoginService uiaLoginService, CourseSelectService courseSelectService)
     {
-        httpClientHandler = new HttpClientHandler
-        {
-            AllowAutoRedirect = true,
-            UseCookies = true,
-            CookieContainer = new CookieContainer(),
-        };
-
-        httpClient = new HttpClient(httpClientHandler);
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-
-        courseSelectService = new CourseSelectService(httpClient, httpClientHandler, provider.GetRequiredService<ILogger<CourseSelectService>>());
-        uialoginService = new UIALoginService(httpClient, httpClientHandler, provider.GetRequiredService<ILogger<UIALoginService>>());
+        this.courseSelectService = courseSelectService;
+        this.uiaLoginService = uiaLoginService;
     }
 
     public async Task<LoginResult> LoginAsync(LoginOption loginOption)
     {
-        var result = await uialoginService.LoginAsync(loginOption);
+        var result = await uiaLoginService.LoginAsync(loginOption);
 
         hasLogin = result.Success;
+
+        if (result.Success)
+        {
+            _ = KeepNotice();
+        }
 
         return result;
     }
@@ -56,5 +49,10 @@ class AccountManageService
     public async Task<bool> AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)
     {
         return await courseSelectService.AddCourseSelectPlan(course, openTime, cancellationToken);
+    }
+
+    private async Task KeepNotice()
+    {
+
     }
 }

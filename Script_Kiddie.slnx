@@ -1,3 +1,7 @@
 <Solution>
+  <Project Path="ScriptKiddie.WinUI/ScriptKiddie.WinUI.csproj" Id="1b6afc4d-5032-4ad9-b1f2-eb7abd6284b6">
+    <Platform Project="x64" />
+    <Deploy />
+  </Project>
   <Project Path="ScriptKiddie/Script Kiddie.csproj" />
 </Solution>

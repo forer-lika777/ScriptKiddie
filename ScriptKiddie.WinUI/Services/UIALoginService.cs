@@ -1,24 +1,27 @@
-﻿using Script_Kiddie.Models;
-using Script_Kiddie.Resources.Localization;
-using HtmlAgilityPack;
-using Microsoft.Extensions.Logging;
-using Script_Kiddie.Interfaces;
-using System.Net;
+﻿using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Net.Http;
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using HtmlAgilityPack;
+using ScriptKiddie.WinUI.Resources.Localization;
+using ScriptKiddie.WinUI.Models;
 
-namespace Script_Kiddie.Services;
+namespace ScriptKiddie.WinUI.Services;
 
 public class UIALoginService : ILoginService
 {
-    private readonly HttpClient httpClient;
-    private readonly HttpClientHandler httpClientHandler;
+    private readonly HttpClientProvider httpClientProvider;
 
     private readonly ILogger<UIALoginService> logger;
 
     private const string BASE_URL = "https://jxfw.gdut.edu.cn";
-    private const string UIA_LOGIN_URL = "https://authserver.gdut.edu.cn/authserver/login?service=https%3A%2F%2Fjxfw.gdut.edu.cn%2Fnew%2FssoLogin";
+    private const string UIA_LOGIN_BASE_URL = "https://authserver.gdut.edu.cn";
+    private const string UIA_LOGIN_URL = UIA_LOGIN_BASE_URL + "/authserver/login?service=https%3A%2F%2Fjxfw.gdut.edu.cn%2Fnew%2FssoLogin";
 
     private const string MAIN_PAGE_URL = BASE_URL + "/login!welcome.action";
     private const string LOG_OUT_URL = BASE_URL + "/new/logout";
@@ -29,10 +32,9 @@ public class UIALoginService : ILoginService
     private const string AES_CHARS = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
     private readonly Random random;
 
-    public UIALoginService(HttpClient httpClient, HttpClientHandler httpClientHandler, ILogger<UIALoginService> logger)
+    public UIALoginService(HttpClientProvider httpClientProvider, ILogger<UIALoginService> logger)
     {
-        this.httpClient = httpClient;
-        this.httpClientHandler = httpClientHandler;
+        this.httpClientProvider = httpClientProvider;
         this.logger = logger;
 
         random = new Random();
@@ -46,50 +48,15 @@ public class UIALoginService : ILoginService
 
             if (loginOption.LoadCookie)
             {
-                if (loginOption.CookieLoadMode == CookieLoadMode.CookieString)
-                {
-                    var cookies = JsonSerializer.Deserialize(loginOption.CookieContent, CookieJsonContext.Default.ListCookieItem);
-                    if (cookies != null && cookies.Count > 0)
-                    {
-                        // 设置到 HttpClientHandler
-                        foreach (var cookie in cookies)
-                        {
-                            var domain = cookie.Domain ?? BASE_URL;
-                            var path = cookie.Path ?? "/";
-
-                            // 用 Cookie 自己的 Domain 构造 Uri，而不是用 MAIN_PAGE_URL
-                            var uri = new Uri($"https://{domain.TrimStart('.')}{path}");
-
-                            var c = new Cookie(cookie.Name, cookie.Value)
-                            {
-                                Domain = domain,
-                                Path = path
-                            };
-                            httpClientHandler.CookieContainer.Add(uri, c);
-                        }
-                    }
-                }
-                else if (loginOption.CookieLoadMode == CookieLoadMode.Cookie)
-                {
-                    if (loginOption.Cookie == null)
-                    {
-                        throw new NullReferenceException("Cookie load mode is cookie item, but cookie in login option is null.");
-                    }
-                    var uri = new Uri(BASE_URL);
-                    httpClientHandler.CookieContainer.Add(uri, loginOption.Cookie);
-                }
-            }
-            else
-            {
-                throw new CookieException("Could not load cookie because this http client instance has sent request. Please reset this http client instance or use username and password login.");
+                httpClientProvider.SetCookies(loginOption.CookieContent);
             }
 
-            var response = await httpClient.GetAsync(BASE_URL);
+            var response = await httpClientProvider.GetCurrentClient().GetAsync(BASE_URL);
             string? responseurl = response.RequestMessage?.RequestUri?.ToString() ?? string.Empty;
 
             if (responseurl == MAIN_PAGE_URL)
             {
-                return await BuildLoginResult(loginOption, httpClient, httpClientHandler, response.StatusCode);
+                return await BuildLoginResult(loginOption, response.StatusCode);
             }
             else if (!responseurl.Contains(UIA_LOGIN_URL))
             {
@@ -112,12 +79,12 @@ public class UIALoginService : ILoginService
 
             logger.LogDebug(AccountServiceStr.SendPost);
 
-            response = await httpClient.PostAsync(UIA_LOGIN_URL, content);
+            response = await httpClientProvider.GetCurrentClient().PostAsync(UIA_LOGIN_URL, content);
 
             if (response.RequestMessage?.RequestUri?.ToString() == MAIN_PAGE_URL)
             {
                 logger.LogDebug(AccountServiceStr.LoginSuccess);
-                return await BuildLoginResult(loginOption, httpClient, httpClientHandler, response.StatusCode);
+                return await BuildLoginResult(loginOption, response.StatusCode);
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -152,27 +119,13 @@ public class UIALoginService : ILoginService
     }
 
     // ========== 序列化 Cookie 为 JSON 字符串 ==========
-    private async Task<string> SerializeCookiesToJson(HttpClientHandler handler)
+    private async Task<string> SerializeCookiesToJson(CookieCollection cookieCollection)
     {
-        var cookies = ExtractCookiesFromContainer(handler);
-
-        var json = JsonSerializer.Serialize(
-            cookies,
-            CookieJsonContext.Default.ListCookieItem
-        );
-
-        return json;
-    }
-
-    // ========== 从 CookieContainer 提取 Cookie 列表 ==========
-    private List<CookieItem> ExtractCookiesFromContainer(HttpClientHandler handler)
-    {
-        var result = new List<CookieItem>();
-        var cookieCollection = handler.CookieContainer.GetAllCookies();
+        var cookies = new List<CookieItem>();
 
         foreach (Cookie cookie in cookieCollection)
         {
-            result.Add(new CookieItem
+            cookies.Add(new CookieItem
             {
                 Name = cookie.Name,
                 Value = cookie.Value,
@@ -184,17 +137,19 @@ public class UIALoginService : ILoginService
             });
         }
 
-        return result;
+        var json = JsonSerializer.Serialize(cookies, CookieJsonContext.Default.ListCookieItem);
+
+        return json;
     }
 
-    private async Task<LoginResult> BuildLoginResult(LoginOption loginOption, HttpClient httpClient, HttpClientHandler httpClientHandler, HttpStatusCode statusCode)
+    private async Task<LoginResult> BuildLoginResult(LoginOption loginOption, HttpStatusCode statusCode)
     {
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Get, GET_ACCOUNT_INFO_URL);
             request.Headers.Referrer = new Uri(GET_ACCOUNT_INFO_REFERRER);
 
-            var response = await httpClient.SendAsync(request);
+            var response = await httpClientProvider.GetCurrentClient().SendAsync(request);
 
             string html = await response.Content.ReadAsStringAsync();
             var document = new HtmlDocument();
@@ -205,7 +160,7 @@ public class UIALoginService : ILoginService
                 Success = true,
                 Message = AccountServiceStr.LoginSuccess,
                 StatusCode = statusCode,
-                CookieContent = loginOption.ExportCookie ? await SerializeCookiesToJson(httpClientHandler) : string.Empty,
+                CookieContent = loginOption.ExportCookie ? await SerializeCookiesToJson(httpClientProvider.GetCookies()) : string.Empty,
                 AccountName = GetAccountName(document) ?? "获取账户姓名失败",
                 Grade = GetGrade(document) ?? "获取年级失败"
             };

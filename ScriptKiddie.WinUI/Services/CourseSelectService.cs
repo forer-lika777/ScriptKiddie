@@ -1,19 +1,21 @@
-﻿using Script_Kiddie.Models;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using ScriptKiddie.WinUI.Models;
 
-namespace Script_Kiddie.Services;
+namespace ScriptKiddie.WinUI.Services;
 
-class CourseSelectService
+public class CourseSelectService : ICourseSelectService
 {
-    private readonly HttpClient httpClient;
-    private readonly HttpClientHandler httpClientHandler;
+    private readonly HttpClientProvider httpClientProvider;
 
     private readonly ILogger<CourseSelectService> logger;
 
@@ -25,10 +27,9 @@ class CourseSelectService
     private CourseResponse? selectableCourses = null;
     private List<CourseItem>? selectedCourses = null;
 
-    public CourseSelectService(HttpClient httpClient, HttpClientHandler httpClientHandler, ILogger<CourseSelectService> logger)
+    public CourseSelectService(HttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger)
     {
-        this.httpClient = httpClient;
-        this.httpClientHandler = httpClientHandler;
+        this.httpClientProvider = httpClientProvider;
         this.logger = logger;
     }
 
@@ -44,7 +45,7 @@ class CourseSelectService
         return selectedCourses;
     }
 
-    public async Task RefreshSelectableCoursesAsync()
+    private async Task RefreshSelectableCoursesAsync()
     {
         int page = 1;
         int pageSize = 100;
@@ -71,7 +72,7 @@ class CourseSelectService
                 request.Content = content;
                 request.Headers.Referrer = new Uri(BASE_URL);
 
-                var response = await httpClient.SendAsync(request);
+                var response = await httpClientProvider.GetCurrentClient().SendAsync(request);
 
                 logger.LogDebug($"Response: {response.StatusCode}");
 
@@ -113,7 +114,7 @@ class CourseSelectService
         }
     }
 
-    public async Task RefreshSelectedCoursesAsync()
+    private async Task RefreshSelectedCoursesAsync()
     {
         try
         {
@@ -130,7 +131,7 @@ class CourseSelectService
             request.Content = content;
             request.Headers.Referrer = new Uri(BASE_URL);
 
-            var response = await httpClient.SendAsync(request);
+            var response = await httpClientProvider.GetCurrentClient().SendAsync(request);
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -145,7 +146,7 @@ class CourseSelectService
         }
         catch (Exception ex)
         {
-            logger.LogDebug(ex.Message);
+            logger.LogDebug("{Message}", ex.Message);
             return;
         }
     }
@@ -179,9 +180,9 @@ class CourseSelectService
                 request.Content = content;
                 request.Headers.Referrer = new Uri(BASE_URL);
 
-                var response = await httpClient.SendAsync(request, cancellationToken);
+                var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
 
-                logger.LogDebug($"Response: {response.StatusCode}");
+                logger.LogDebug("Response: {response.StatusCode}", response.StatusCode);
 
                 // 你妈傻逼选课失败还返回200，我操你妈还要我自己判断
 
@@ -215,7 +216,7 @@ class CourseSelectService
 
                 stopWatch.Stop();
                 int milliseconds = (int)stopWatch.ElapsedMilliseconds;
-                
+
                 if (interval > milliseconds)
                 {
                     await Task.Delay((interval - milliseconds));
@@ -235,7 +236,7 @@ class CourseSelectService
         return false;
     }
 
-    public async Task<bool> AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 2000)
+    public async Task AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 2000)
     {
         var now = DateTime.Now;
         var selectTime = openTime.AddMilliseconds(-4000);
@@ -244,7 +245,7 @@ class CourseSelectService
         if (delay.TotalHours > 24 || delay.TotalHours < -24)
         {
             logger.LogError("Cannot set a schedule that is more than 24 hours away from the current time. Please set this plan later. Time elapsed: {elapse}", delay.ToString());
-            return false;
+            return;
         }
 
         await RefreshSelectableCoursesAsync();
@@ -253,7 +254,7 @@ class CourseSelectService
         if (selectableCourses == null || !selectableCourses.Rows.Any(item => item.Equals(course)))
         {
             logger.LogError("Plan cancelled because target course is not contained in the selectable courses list.");
-            return false;
+            return;
         }
         //if (selectedCourses != null && selectedCourses.Any(item => item.Equals(course)))
         //{
@@ -282,24 +283,24 @@ class CourseSelectService
             if (selectedCourses == null)
             {
                 logger.LogDebug("Failed to check selected courses. Please manually check it by yourself.");
-                return false;
+                return;
             }
-            
+
             if (selectedCourses.Any(item => item.Equals(course)))
             {
                 logger.LogDebug("Found selected course: {courseName}. Your course has been successfully selected!", course.CourseName);
-                return true;
+                return;
             }
             else
             {
                 logger.LogError("Course not found in your selected courses list.");
-                return false;
+                return;
             }
         }
         else
         {
             logger.LogDebug($"Select failed: {course.CourseName}，attempt limit reached.");
-            return false;
+            return;
         }
     }
 }
