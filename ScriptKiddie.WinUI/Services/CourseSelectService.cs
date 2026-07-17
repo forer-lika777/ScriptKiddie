@@ -74,7 +74,7 @@ public class CourseSelectService : ICourseSelectService
 
                 var response = await httpClientProvider.GetCurrentClient().SendAsync(request);
 
-                logger.LogDebug($"Response: {response.StatusCode}");
+                logger.LogDebug("Response: {StatusCode}", response.StatusCode);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -83,7 +83,7 @@ public class CourseSelectService : ICourseSelectService
 
                     if (courseResponse == null)
                     {
-                        logger.LogDebug($"Could not deserialize raw data to type {typeof(CourseResponseJsonContext)}. Raw data: {response.Content.ReadAsStreamAsync()}");
+                        logger.LogDebug("Could not deserialize raw data to type {typeof(CourseResponseJsonContext)}. Raw data: {response.Content}", typeof(CourseResponseJsonContext), response.Content.ReadAsStreamAsync());
                         selectableCourses = courses.Total == -1 ? null : courses;
                         return;
                     }
@@ -99,7 +99,9 @@ public class CourseSelectService : ICourseSelectService
                     continue;
                 }
 
-                logger.LogDebug($"Request returned a failure. Raw data: {await response.Content.ReadAsStringAsync()}");
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                logger.LogDebug("Request returned a failure. Raw data: {responseContent}", responseContent);
 
                 selectableCourses = courses.Total == -1 ? null : courses;
                 return;
@@ -109,7 +111,7 @@ public class CourseSelectService : ICourseSelectService
         }
         catch (Exception ex)
         {
-            logger.LogDebug(ex.Message);
+            logger.LogDebug("{Message}", ex.Message);
             return;
         }
     }
@@ -140,7 +142,7 @@ public class CourseSelectService : ICourseSelectService
                 return;
             }
 
-            logger.LogDebug($"Request returned a failure. Raw data: {await response.Content.ReadAsStringAsync()}");
+            logger.LogDebug("Request returned a failure. Raw data: {response.Content}", await response.Content.ReadAsStringAsync());
 
             return;
         }
@@ -188,11 +190,11 @@ public class CourseSelectService : ICourseSelectService
 
                 string information = await response.Content.ReadAsStringAsync();
 
-                logger.LogDebug(information);
+                logger.LogDebug("{inmformation}", information);
 
                 if (information != "1") // 选课成功返回1！你是真幽默，返回个1！
                 {
-                    logger.LogDebug($"Select failed, because {information}");
+                    logger.LogDebug("Select failed, because {information}", information);
                     if (information.Contains("超出选课要求门数"))
                     {
                         logger.LogError("Select failed because select count limit arrived.");
@@ -222,13 +224,13 @@ public class CourseSelectService : ICourseSelectService
                     await Task.Delay((interval - milliseconds));
                 }
 
-                logger.LogDebug("Add request returned a failure. Raw data: {data}", await response.Content.ReadAsStringAsync());
+                logger.LogDebug("Add request returned a failure. Raw data: {response.Content}", await response.Content.ReadAsStringAsync());
 
                 cycleTimes++;
             }
             catch (Exception ex)
             {
-                logger.LogDebug(ex.Message);
+                logger.LogDebug("{Message}", ex.Message);
                 return false;
             }
         }
@@ -264,7 +266,7 @@ public class CourseSelectService : ICourseSelectService
 
         if (delay.TotalMilliseconds > 0)
         {
-            logger.LogDebug($"Course select will start at {selectTime}. Waiting {delay.TotalSeconds:F1} seconds to start selecting...");
+            logger.LogDebug("Course select will start at {selectTime}. Waiting {delay.TotalSeconds} seconds to start selecting...", selectTime, $"{delay.TotalSeconds:F1}");
             await Task.Delay(delay, cancellationToken);
         }
         else
@@ -272,12 +274,12 @@ public class CourseSelectService : ICourseSelectService
             logger.LogWarning("It seems that the opening time have passed. Start selecting immediately.");
         }
 
-        logger.LogDebug($"Start selecting: {course.CourseName} ({course.CourseTaskCode})");
+        logger.LogDebug("Start selecting: {CourseName} ({CourseTaskCode})", course.CourseName, course.CourseTaskCode);
         var result = await BeginAddCycle(course, cancellationToken, interval);
 
         if (result)
         {
-            logger.LogDebug($"Successfully selected: {course.CourseName}!");
+            logger.LogDebug("Successfully selected: {CourseName}!", course.CourseName);
             logger.LogDebug($"Please wait for me to confirm select status...");
             await RefreshSelectedCoursesAsync();
             if (selectedCourses == null)
@@ -288,7 +290,7 @@ public class CourseSelectService : ICourseSelectService
 
             if (selectedCourses.Any(item => item.Equals(course)))
             {
-                logger.LogDebug("Found selected course: {courseName}. Your course has been successfully selected!", course.CourseName);
+                logger.LogDebug("Found selected course: {CourseName}. Your course has been successfully selected!", course.CourseName);
                 return;
             }
             else
@@ -299,7 +301,7 @@ public class CourseSelectService : ICourseSelectService
         }
         else
         {
-            logger.LogDebug($"Select failed: {course.CourseName}，attempt limit reached.");
+            logger.LogDebug("Select failed: {CourseName}，attempt limit reached.", course.CourseName);
             return;
         }
     }
