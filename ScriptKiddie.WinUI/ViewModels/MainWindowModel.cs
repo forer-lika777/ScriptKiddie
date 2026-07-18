@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using ScriptKiddie.WinUI.Pages;
 using ScriptKiddie.WinUI.Services;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.ViewModels;
 
-public partial class MainWindowModel : ObservableObject
+public partial class MainWindowModel : ObservableObject, IRecipient<LoginSuccessMessage>
 {
     private readonly AppSettingsService appSettingsService;
 
@@ -20,31 +21,14 @@ public partial class MainWindowModel : ObservableObject
     public MainWindowModel(AppSettingsService appSettingsService)
     {
         this.appSettingsService = appSettingsService;
-        Initialize();
+
+        WeakReferenceMessenger.Default.Register(this);
+
+        IsLoggedIn = appSettingsService.IsLoggedIn.Value;
     }
 
-    private void Initialize()
+    public void Receive(LoginSuccessMessage message)
     {
-        if (!appSettingsService.IsLoggedIn.Value)
-        {
-            var loginViewModel = App.Current.Services.GetRequiredService<LoginPageModel>();
-            loginViewModel.LoginSucceeded += OnLoginSucceeded;
-
-            IsLoggedIn = false;
-        }
-        else
-        {
-            IsLoggedIn = true;
-        }
-    }
-
-    private void OnLoginSucceeded(object? sender, EventArgs e)
-    {
-        //if (sender is LoginPageModel loginViewModel)
-        //{
-        //    loginViewModel.LoginSucceeded -= OnLoginSucceeded;
-        //}
-
         IsLoggedIn = true;
     }
 }
