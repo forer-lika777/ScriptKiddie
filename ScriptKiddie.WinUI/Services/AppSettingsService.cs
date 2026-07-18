@@ -2,12 +2,8 @@
 using ScriptKiddie.WinUI.Models;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.DataProtection;
 using Windows.Storage;
@@ -43,7 +39,8 @@ public class AppSettingsService
             get => value;
             set
             {
-                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
+                if (EqualityComparer<T>.Default.Equals(this.value, value))
+                    return;
                 this.value = value;
                 Save();
             }
@@ -57,7 +54,8 @@ public class AppSettingsService
             {
                 var raw = ApplicationData.Current.LocalSettings.Values[Name];
 
-                if (raw == null) return;
+                if (raw == null)
+                    return;
 
                 if (isDirectlySupported && raw is T typedValue)
                 {
@@ -140,7 +138,8 @@ public class AppSettingsService
             get => value;
             set
             {
-                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
+                if (EqualityComparer<T>.Default.Equals(this.value, value))
+                    return;
                 this.value = value;
                 Save();
             }
@@ -154,7 +153,8 @@ public class AppSettingsService
             {
                 var raw = ApplicationData.Current.LocalSettings.Values[Name];
 
-                if (raw == null) return;
+                if (raw == null)
+                    return;
 
                 if (raw is string data)
                 {
@@ -194,7 +194,8 @@ public class AppSettingsService
 
         private static string Encrypt(string data)
         {
-            if (string.IsNullOrEmpty(data)) return string.Empty;
+            if (string.IsNullOrEmpty(data))
+                return string.Empty;
 
             // "LOCAL=user" 表示该加密数据仅限当前 Windows 登录用户解密
             var provider = new DataProtectionProvider("LOCAL=user");
@@ -207,9 +208,10 @@ public class AppSettingsService
             return CryptographicBuffer.EncodeToBase64String(protectedBuffer);
         }
 
-        private static string Decrypt(string data) 
+        private static string Decrypt(string data)
         {
-            if (string.IsNullOrEmpty(data)) return string.Empty;
+            if (string.IsNullOrEmpty(data))
+                return string.Empty;
 
             try
             {
