@@ -43,7 +43,6 @@ public partial class App : Application
     }
 
 #if DEBUG
-
     [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool AllocConsole();
@@ -111,6 +110,7 @@ public partial class App : Application
                 options.IncludeScopes = false;
                 options.ColorBehavior = LoggerColorBehavior.Enabled;
             });
+            builder.SetMinimumLevel(LogLevel.Debug);
 #endif
         });
     }

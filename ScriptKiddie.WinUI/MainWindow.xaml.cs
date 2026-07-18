@@ -13,7 +13,7 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         ExtendsContentIntoTitleBar = true;
-        
+
         this.appSettingsService = appSettingsService;
         ViewModel = mainWindowModel;
     }
