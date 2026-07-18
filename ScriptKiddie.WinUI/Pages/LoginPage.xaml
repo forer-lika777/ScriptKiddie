@@ -8,8 +8,15 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel HorizontalAlignment="Center" Padding="100" Spacing="20">
-        <TextBlock Text="This is Login Page"/>
-        <Button Content="Login" Command="{x:Bind ViewModel.LoginCommand}"/>
+    <StackPanel DataContext="{x:Bind ViewModel}" 
+                HorizontalAlignment="Center" Margin="0, 150, 0, 0" Spacing="40" MinWidth="360">
+        <TextBox Text="{x:Bind ViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 PlaceholderText="请输入账户名"
+                 IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
+        <PasswordBox Password="{x:Bind ViewModel.Password, Mode=TwoWay}" 
+                     PlaceholderText="请输入密码"
+                     IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
+        <Button Content="Login" HorizontalAlignment="Stretch"
+                Command="{x:Bind ViewModel.LoginCommand}"/>
     </StackPanel>
 </Page>

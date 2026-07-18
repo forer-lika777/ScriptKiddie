@@ -8,7 +8,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
+    <StackPanel Padding="40, 80" Spacing="20">
+        <StackPanel Spacing="5">
+            <TextBlock Text="{x:Bind ViewModel.AccountName}"/>
+            <TextBlock Text="{x:Bind ViewModel.AccountId}"/>
+        </StackPanel>
         <Button Content="退出登录" Command="{x:Bind ViewModel.ExitLoginCommand}"/>
-    </Grid>
+    </StackPanel>
 </Page>

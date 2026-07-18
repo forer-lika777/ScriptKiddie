@@ -1,30 +1,62 @@
-﻿using System;
+using CommunityToolkit.Mvvm.Messaging;
+using ScriptKiddie.WinUI.Models;
+using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using ScriptKiddie.WinUI.Models;
 
 namespace ScriptKiddie.WinUI.Services;
 
-public class AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService)
+public class AccountManageService
 {
-    private readonly ILoginService loginService = loginService;
-    private readonly ICourseSelectService courseSelectService = courseSelectService;
+    private readonly ILoginService loginService;
+    private readonly ICourseSelectService courseSelectService;
+    private readonly AppSettingsService appSettingsService;
+
+    private AccountInfo? accountInfo;
 
     private bool hasLogin = false;
+
+    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, AppSettingsService appSettingsService)
+    {
+        this.loginService = loginService;
+        this.courseSelectService = courseSelectService;
+        this.appSettingsService = appSettingsService;
+    }
 
     public async Task<LoginResult> LoginAsync(LoginOption loginOption)
     {
         var result = await loginService.LoginAsync(loginOption);
 
-        hasLogin = result.Success;
+        if (hasLogin = result.Success)
+        {
+            appSettingsService.IsLoggedIn.Value = true;
+            appSettingsService.Cookies.Value = result.CookieContent.ToCookieItemList();
+
+            accountInfo = new AccountInfo
+            {
+                AccountId = loginOption.UserName,
+                AccountName = result.AccountName,
+                Grade = result.Grade,
+            };
+
+            appSettingsService.AccountInfo.Value = accountInfo;
+
+            WeakReferenceMessenger.Default.Send<AccountInfoChangedMessage>(new AccountInfoChangedMessage(accountInfo));
+        }
 
         return result;
+    }
+
+    public async Task<bool> LogoutAsync()
+    {
+        return await loginService.LogoutAsync();
+    }
+
+    public AccountInfo? GetAccountInfo()
+    {
+        return accountInfo;
     }
 
     public async Task<CourseResponse?> GetSelectableCoursesAsync()

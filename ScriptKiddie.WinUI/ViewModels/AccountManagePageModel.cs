@@ -1,18 +1,27 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using ScriptKiddie.WinUI.Models;
 using ScriptKiddie.WinUI.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.ViewModels;
 
-public partial class AccountManagePageModel(AccountManageService accountManageService) : ObservableObject
+public partial class AccountManagePageModel : ObservableObject, IRecipient<AccountInfoChangedMessage>
 {
-    private readonly AccountManageService accountManageService = accountManageService;
+    private readonly AccountManageService accountManageService;
+    private readonly AppSettingsService appSettingsService;
+
+    public AccountManagePageModel(AccountManageService accountManageService, AppSettingsService appSettingsService)
+    {
+        this.accountManageService = accountManageService;
+        this.appSettingsService = appSettingsService;
+
+        WeakReferenceMessenger.Default.Register(this);
+
+        RefreshAccountInfo(accountManageService.GetAccountInfo());
+    }
 
     [ObservableProperty]
     public partial string AccountName { get; set; } = string.Empty;
@@ -20,10 +29,27 @@ public partial class AccountManagePageModel(AccountManageService accountManageSe
     [ObservableProperty]
     public partial string AccountId { get; set; } = string.Empty;
 
-    [RelayCommand]
-    private void ExitLogin()
+    public void Receive(AccountInfoChangedMessage message)
     {
-        var mainWindowModel = App.Current.Services.GetRequiredService<MainWindowModel>();
-        mainWindowModel.IsLoggedIn = false;
+        RefreshAccountInfo(message.value);
+    }
+
+    private void RefreshAccountInfo(AccountInfo? accountInfo)
+    {
+        if (accountInfo is null)
+            return;
+        AccountName = accountInfo.AccountName;
+        AccountId = accountInfo.AccountId;
+    }
+
+    [RelayCommand]
+    private async Task ExitLogin()
+    {
+        if (await accountManageService.LogoutAsync())
+        {
+            appSettingsService.IsLoggedIn.Value = false;
+            var mainWindowModel = App.Current.Services.GetRequiredService<MainWindowModel>();
+            mainWindowModel.IsLoggedIn = false;
+        }
     }
 }

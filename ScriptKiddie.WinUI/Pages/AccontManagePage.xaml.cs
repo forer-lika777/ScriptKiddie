@@ -19,7 +19,7 @@ namespace ScriptKiddie.WinUI.Pages;
 
 public sealed partial class AccountManagePage : Page
 {
-    public AccountManagePageModel ViewModel;
+    public AccountManagePageModel ViewModel { get; }
 
     public AccountManagePage()
     {
