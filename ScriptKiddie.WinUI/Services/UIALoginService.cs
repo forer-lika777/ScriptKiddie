@@ -1,15 +1,15 @@
-﻿using System.Net;
+﻿using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
+using ScriptKiddie.WinUI.Models;
+using ScriptKiddie.WinUI.Resources.Localization;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Net.Http;
-using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using HtmlAgilityPack;
-using ScriptKiddie.WinUI.Resources.Localization;
-using ScriptKiddie.WinUI.Models;
 
 namespace ScriptKiddie.WinUI.Services;
 
@@ -40,11 +40,39 @@ public class UIALoginService : ILoginService
         random = new Random();
     }
 
+    public async Task<bool> LogoutAsync()
+    {
+        try
+        {
+            logger.LogInformation("开始退出登录。");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, LOG_OUT_URL);
+            request.Headers.Referrer = new Uri(MAIN_PAGE_URL);
+
+            var response = await httpClientProvider.GetCurrentClient().SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                logger.LogError("成功退出登录。状态码：{StatusCode}", response.StatusCode.ToString());
+                return true;
+            }
+
+            logger.LogError("未知原因引发了退出登录失败。");
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("尝试退出登录时失败。错误信息：{Message}", ex.Message);
+            return false;
+        }
+    }
+
     public async Task<LoginResult> LoginAsync(LoginOption loginOption)
     {
         try
         {
-            logger.LogDebug(AccountServiceStr.BeginLoggingIn);
+            logger.LogInformation(AccountServiceStr.BeginLoggingIn);
 
             if (loginOption.LoadCookie)
             {
@@ -56,6 +84,7 @@ public class UIALoginService : ILoginService
 
             if (responseurl == MAIN_PAGE_URL)
             {
+                logger.LogInformation("您有一个有效会话，无需登录。");
                 return await BuildLoginResult(loginOption, response.StatusCode);
             }
             else if (!responseurl.Contains(UIA_LOGIN_URL))
@@ -65,12 +94,12 @@ public class UIALoginService : ILoginService
 
             if (loginOption.LoadCookie)
             {
-                logger.LogDebug(AccountServiceStr.UIA_LoadCookieLoginFailedWarning);
+                logger.LogWarning(AccountServiceStr.UIA_LoadCookieLoginFailedWarning);
             }
 
             if (string.IsNullOrEmpty(loginOption.UserName) || string.IsNullOrEmpty(loginOption.Password))
             {
-                throw new Exception("Username or password is empty. Login failed.");
+                throw new Exception("用户名或密码为空。取消登录。");
             }
 
             string html = await response.Content.ReadAsStringAsync();
@@ -83,13 +112,13 @@ public class UIALoginService : ILoginService
 
             if (response.RequestMessage?.RequestUri?.ToString() == MAIN_PAGE_URL)
             {
-                logger.LogDebug(AccountServiceStr.LoginSuccess);
+                logger.LogInformation(AccountServiceStr.LoginSuccess);
                 return await BuildLoginResult(loginOption, response.StatusCode);
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                logger.LogDebug(AccountServiceStr.UIA_WrongUsernameOrPasswordMessage);
+                logger.LogError(AccountServiceStr.UIA_WrongUsernameOrPasswordMessage);
                 if (loginOption.UserName.Length == 10)
                 {
                     throw new Exception(AccountServiceStr.UIA_UsernameOrPasswordIncorrect);
@@ -109,37 +138,13 @@ public class UIALoginService : ILoginService
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError("{Message}", ex.Message);
             return new LoginResult
             {
                 Success = false,
                 Message = ex.Message
             };
         }
-    }
-
-    // ========== 序列化 Cookie 为 JSON 字符串 ==========
-    private async Task<string> SerializeCookiesToJson(CookieCollection cookieCollection)
-    {
-        var cookies = new List<CookieItem>();
-
-        foreach (Cookie cookie in cookieCollection)
-        {
-            cookies.Add(new CookieItem
-            {
-                Name = cookie.Name,
-                Value = cookie.Value,
-                Domain = cookie.Domain,
-                Path = cookie.Path,
-                Expires = cookie.Expires,
-                Secure = cookie.Secure,
-                HttpOnly = cookie.HttpOnly
-            });
-        }
-
-        var json = JsonSerializer.Serialize(cookies, CookieJsonContext.Default.ListCookieItem);
-
-        return json;
     }
 
     private async Task<LoginResult> BuildLoginResult(LoginOption loginOption, HttpStatusCode statusCode)
@@ -160,13 +165,14 @@ public class UIALoginService : ILoginService
                 Success = true,
                 Message = AccountServiceStr.LoginSuccess,
                 StatusCode = statusCode,
-                CookieContent = loginOption.ExportCookie ? await SerializeCookiesToJson(httpClientProvider.GetCookies()) : string.Empty,
+                CookieContent = loginOption.ExportCookie ? httpClientProvider.GetCookies() : [],
                 AccountName = GetAccountName(document) ?? "获取账户姓名失败",
                 Grade = GetGrade(document) ?? "获取年级失败"
             };
         }
-        catch (Exception ex){
-            logger.LogDebug("Error while get account info: " + ex.Message);
+        catch (Exception ex)
+        {
+            logger.LogError("尝试获取用户信息时失败。错误信息: {Message}", ex.Message);
             return new LoginResult
             {
                 Success = true,
@@ -183,25 +189,25 @@ public class UIALoginService : ILoginService
         try
         {
             var td = document.DocumentNode.SelectSingleNode("//td[contains(text(), '姓名：')]")
-                ?? throw new HtmlWebException("Failed to get td from the html structure.");
+                ?? throw new HtmlWebException("无法从网页结构中获取表格元素。");
 
             // 找到下一个 td 兄弟元素
             var nextTd = td.SelectSingleNode("following-sibling::td")
-                ?? throw new HtmlWebException("Failed to get next td from the html structure.");
+                ?? throw new HtmlWebException("无法从网页结构中获取下一个表格元素。");
 
             // 获取 label 标签里的文本
             var label = nextTd.SelectSingleNode(".//label")
-                ?? throw new HtmlWebException("Failed to get grade text from the td element.");
+                ?? throw new HtmlWebException("无法从表格元素中获取账户姓名文本。");
 
             string accountName = label.InnerText.Trim();
 
-            logger.LogDebug("Account name: " + accountName);
+            logger.LogInformation("成功获取到账户姓名: {AccountName}", accountName);
 
             return accountName;
         }
         catch (HtmlWebException ex)
         {
-            logger.LogDebug("Error while getting account name: " + ex);
+            logger.LogError("尝试获取账户姓名时失败。错误信息：{ex}", ex.Message);
             return null;
         }
     }
@@ -211,25 +217,25 @@ public class UIALoginService : ILoginService
         try
         {
             var td = document.DocumentNode.SelectSingleNode("//td[contains(text(), '所在年级：')]")
-                ?? throw new HtmlWebException("Failed to get td from the html structure.");
+                ?? throw new HtmlWebException("无法从网页结构中获取表格元素。");
 
             // 找到下一个 td 兄弟元素
             var nextTd = td.SelectSingleNode("following-sibling::td")
-                ?? throw new HtmlWebException("Failed to get next td from the html structure.");
+                ?? throw new HtmlWebException("无法从网页结构中获取下一个表格元素。");
 
             // 获取 label 标签里的文本
             var label = nextTd.SelectSingleNode(".//label")
-                ?? throw new HtmlWebException("Failed to get grade text from the td element.");
+                ?? throw new HtmlWebException("无法从表格元素中获取年级文本。");
 
             string grade = label.InnerText.Trim();
 
-            logger.LogDebug("Grade: " + grade);
+            logger.LogInformation("Grade: {grade}", grade);
 
             return grade;
         }
         catch (HtmlWebException ex)
         {
-            logger.LogDebug("Failed to get Grade: " + ex);
+            logger.LogError("尝试获取年级时失败。错误信息：{ex}", ex.Message);
             return null;
         }
     }
@@ -276,14 +282,15 @@ public class UIALoginService : ILoginService
         try
         {
             int start = html.IndexOf(pattern);
-            if (start == -1) return "";
+            if (start == -1)
+                return "";
             start += pattern.Length;
             int end = html.IndexOf('"', start);
             return end > start ? html[start..end] : "";
         }
         catch (Exception ex)
         {
-            logger.LogDebug(AccountServiceStr.UIA_ExtractValueFailed, ex.Message);
+            logger.LogError(AccountServiceStr.UIA_ExtractValueFailed, ex.Message);
             return "";
         }
     }

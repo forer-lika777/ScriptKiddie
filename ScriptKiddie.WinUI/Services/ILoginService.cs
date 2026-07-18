@@ -10,4 +10,5 @@ namespace ScriptKiddie.WinUI.Services;
 public interface ILoginService
 {
     public Task<LoginResult> LoginAsync(LoginOption loginOption);
+    public Task<bool> LogoutAsync();
 }
