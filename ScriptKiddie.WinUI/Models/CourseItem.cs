@@ -97,4 +97,9 @@ public class CourseItem
         if (obj is not CourseItem courseItem) return false;
         return courseItem.CourseTaskCode == CourseTaskCode && courseItem.CourseName == CourseName;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(CourseTaskCode, CourseName);
+    }
 }
