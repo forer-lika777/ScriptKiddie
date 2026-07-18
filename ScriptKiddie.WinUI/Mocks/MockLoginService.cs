@@ -13,16 +13,22 @@ public class MockLoginService : ILoginService
 {
     public async Task<LoginResult> LoginAsync(LoginOption loginOption)
     {
-        await Task.Delay(1000);
+        await Task.Delay(2000);
 
         return new LoginResult
         {
             Success = true,
-            Grade = "10086",
-            AccountName = "脚本小子",
+            Grade = "80808080",
+            AccountName = "WinUI 的受害者之一。",
             StatusCode = HttpStatusCode.OK,
-            Message = "你好脚本小子",
-            ResponseContent = "。",
+            Message = "。",
+            ResponseContent = ".",
         };
+    }
+
+    public async Task<bool> LogoutAsync()
+    {
+        await Task.Delay(1000);
+        return true;
     }
 }
