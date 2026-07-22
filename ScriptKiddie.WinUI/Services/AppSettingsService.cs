@@ -22,6 +22,7 @@ public class AppSettingsService
 
     public KeyItem<bool> IsLoggedIn { get; } = new(nameof(IsLoggedIn), false);
     public KeyItem<AccountInfo> AccountInfo { get; } = new(nameof(AccountInfo), new AccountInfo());
+    public SecureKeyItem<string> Password { get; } = new(nameof(Password), string.Empty);
     public SecureKeyItem<List<CookieItem>> Cookies { get; } = new(nameof(Cookies), []);
 
     public class KeyItem<T> where T : notnull
