@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
+﻿using System.Net;
 
 namespace ScriptKiddie.WinUI.Models;
 
@@ -14,4 +11,5 @@ public class LoginResult
     public CookieCollection CookieContent { get; set; } = [];
     public string AccountName { get; set; } = string.Empty;
     public string Grade { get; set; } = string.Empty;
+    public bool NeedCaptcha { get; set; } = false;
 }

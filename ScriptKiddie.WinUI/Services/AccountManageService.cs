@@ -1,8 +1,7 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using ScriptKiddie.WinUI.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +22,15 @@ public class AccountManageService
         this.loginService = loginService;
         this.courseSelectService = courseSelectService;
         this.appSettingsService = appSettingsService;
+        Init();
+    }
+
+    private void Init()
+    {
+        if (appSettingsService.IsLoggedIn.Value)
+        {
+            accountInfo = appSettingsService.AccountInfo.Value;
+        }
     }
 
     public async Task<LoginResult> LoginAsync(LoginOption loginOption)
@@ -72,5 +80,15 @@ public class AccountManageService
     public void AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)
     {
         _ = courseSelectService.AddCourseSelectPlan(course, openTime, cancellationToken);
+    }
+
+    public string GetCaptchaImage()
+    {
+        return loginService.GetCaptchaImage();
+    }
+
+    public string GetRandomCaptchaImage()
+    {
+        return loginService.GetRandomCaptchaImage();
     }
 }

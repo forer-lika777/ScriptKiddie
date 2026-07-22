@@ -6,17 +6,39 @@
     xmlns:local="using:ScriptKiddie.WinUI.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:ScriptKiddie.WinUI.Utils.Converters"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <ResourceDictionary>
+            <converters:UriToImageSourceConverter x:Key="UriToImageSourceConverter"/>
+        </ResourceDictionary>
+    </Page.Resources>
+
     <StackPanel DataContext="{x:Bind ViewModel}" 
-                HorizontalAlignment="Center" Margin="0, 150, 0, 0" Spacing="40" MinWidth="360">
-        <TextBox Text="{x:Bind ViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 PlaceholderText="请输入账户名"
-                 IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
-        <PasswordBox Password="{x:Bind ViewModel.Password, Mode=TwoWay}" 
-                     PlaceholderText="请输入密码"
+                HorizontalAlignment="Center" Spacing="10" Margin="0, 150, 0, 0" MinWidth="360">
+        <StackPanel Spacing="40">
+            <TextBox Text="{x:Bind ViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     PlaceholderText="请输入账户名"
                      IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
-        <Button Content="Login" HorizontalAlignment="Stretch"
+            <PasswordBox Password="{x:Bind ViewModel.Password, Mode=TwoWay}" 
+                         PlaceholderText="请输入密码"
+                         IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
+            <Grid Visibility="{x:Bind ViewModel.NeedCaptcha, Mode=OneWay}" MaxHeight="32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{x:Bind ViewModel.Captcha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="请输入验证码"
+                         IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
+                <Image Grid.Column="1" Source="{x:Bind ViewModel.CaptchaImage, Mode=OneWay, Converter={StaticResource UriToImageSourceConverter}}" 
+                       HorizontalAlignment="Right"/>
+            </Grid>
+        </StackPanel>
+        
+        <TextBlock Text="{x:Bind ViewModel.Message, Mode=OneWay}" Margin="3, 0, 0, 0"/>
+        <Button Content="Login" HorizontalAlignment="Stretch" Margin="0, 30, 0, 0"
                 Command="{x:Bind ViewModel.LoginCommand}"/>
     </StackPanel>
 </Page>

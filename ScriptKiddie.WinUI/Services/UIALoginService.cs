@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Services;
@@ -22,6 +21,9 @@ public class UIALoginService : ILoginService
     private const string BASE_URL = "https://jxfw.gdut.edu.cn";
     private const string UIA_LOGIN_BASE_URL = "https://authserver.gdut.edu.cn";
     private const string UIA_LOGIN_URL = UIA_LOGIN_BASE_URL + "/authserver/login?service=https%3A%2F%2Fjxfw.gdut.edu.cn%2Fnew%2FssoLogin";
+
+    private const string CAPTCHA_PAGE_URL = BASE_URL + "/waf_text_verify.html";
+    private const string CAPTCHA_IMAGE_URL = BASE_URL + "/waf_text_captcha";
 
     private const string MAIN_PAGE_URL = BASE_URL + "/login!welcome.action";
     private const string LOG_OUT_URL = BASE_URL + "/new/logout";
@@ -53,7 +55,7 @@ public class UIALoginService : ILoginService
 
             if (response.IsSuccessStatusCode)
             {
-                logger.LogError("成功退出登录。状态码：{StatusCode}", response.StatusCode.ToString());
+                logger.LogInformation("成功退出登录。状态码：{StatusCode}", response.StatusCode.ToString());
                 return true;
             }
 
@@ -87,9 +89,32 @@ public class UIALoginService : ILoginService
                 logger.LogInformation("您有一个有效会话，无需登录。");
                 return await BuildLoginResult(loginOption, response.StatusCode);
             }
+            else if (responseurl == CAPTCHA_PAGE_URL)
+            {
+                if (string.IsNullOrWhiteSpace(loginOption.Captcha))
+                {
+                    return new LoginResult
+                    {
+                        Success = false,
+                        NeedCaptcha = true,
+                    };
+                }
+                var request = new HttpRequestMessage(HttpMethod.Get, $"{CAPTCHA_PAGE_URL}?captcha={loginOption.Captcha}");
+                request.Headers.Referrer = new Uri(CAPTCHA_PAGE_URL);
+                var captchaResponse = await httpClientProvider.GetCurrentClient().SendAsync(request);
+                if (!captchaResponse.IsSuccessStatusCode)
+                {
+                    return new LoginResult
+                    {
+                        Success = false,
+                        NeedCaptcha = true,
+                        Message = "验证码错误",
+                    };
+                }
+            }
             else if (!responseurl.Contains(UIA_LOGIN_URL))
             {
-                throw new Exception(AccountServiceStr.PageRedirectedToOtherUrl);
+                throw new Exception($"当前页面被重定向到了其他页面：{responseurl}");
             }
 
             if (loginOption.LoadCookie)
@@ -119,6 +144,7 @@ public class UIALoginService : ILoginService
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 logger.LogError(AccountServiceStr.UIA_WrongUsernameOrPasswordMessage);
+                logger.LogError("{TypeCode} {StatusCode}", (int)response.StatusCode, response.StatusCode);
                 if (loginOption.UserName.Length == 10)
                 {
                     throw new Exception(AccountServiceStr.UIA_UsernameOrPasswordIncorrect);
@@ -333,5 +359,15 @@ public class UIALoginService : ILoginService
             result[i] = AES_CHARS[random.Next(AES_CHARS.Length)];
         }
         return new string(result);
+    }
+
+    public string GetCaptchaImage()
+    {
+        return CAPTCHA_IMAGE_URL;
+    }
+
+    public string GetRandomCaptchaImage()
+    {
+        return $"{CAPTCHA_IMAGE_URL}?{Random.Shared.NextDouble()}";
     }
 }
