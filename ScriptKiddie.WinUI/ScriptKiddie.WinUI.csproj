@@ -83,6 +83,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Mocks\Data\captcha.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mocks\Data\SelectedCoursesData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mocks\Data\SelectableCoursesData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Page Update="Pages\AccontManagePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
