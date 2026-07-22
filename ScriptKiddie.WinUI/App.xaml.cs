@@ -25,28 +25,19 @@ public partial class App : Application
     /// </summary>
     public App()
     {
-#if DEBUG
         AllocConsole();
-#endif
 
         Services = ConfigureServices();
 
-#if DEBUG
         var logger = Services.GetRequiredService<ILogger<App>>();
-        logger.LogInformation("═══════════════════════════════════════════");
-        logger.LogInformation("  调试控制台已启动");
-        logger.LogInformation($"  {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        logger.LogInformation("═══════════════════════════════════════════");
-#endif
+        logger.LogInformation("ScriptKiddie - WinUI 已启用调试控制台");
 
         this.InitializeComponent();
     }
 
-#if DEBUG
     [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool AllocConsole();
-#endif
 
     /// <summary>
     /// Gets the current <see cref="App"/> instance in use
@@ -86,7 +77,7 @@ public partial class App : Application
     {
         services.AddSingleton<AppSettingsService>();
 
-        services.AddSingleton<ICourseSelectService, CourseSelectService>();
+        services.AddSingleton<ICourseSelectService, MockCourseSelectService>();
         services.AddSingleton<ILoginService, MockLoginService>();
 
         services.AddSingleton<AccountManageService>();
@@ -103,7 +94,6 @@ public partial class App : Application
     {
         services.AddLogging(builder =>
         {
-#if DEBUG
             builder.AddSimpleConsole(options =>
             {
                 options.SingleLine = true;
@@ -111,7 +101,6 @@ public partial class App : Application
                 options.ColorBehavior = LoggerColorBehavior.Enabled;
             });
             builder.SetMinimumLevel(LogLevel.Debug);
-#endif
         });
     }
 
