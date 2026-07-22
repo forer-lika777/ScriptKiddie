@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.Json.Serialization;
 
 namespace ScriptKiddie.WinUI.Models;
@@ -14,7 +14,7 @@ public class CourseResponse
     public List<CourseItem> Rows { get; set; } = [];
 }
 
-public class CourseItem
+public partial class CourseItem : ObservableObject
 {
     [JsonPropertyName("kcrwdm")]
     public string? CourseTaskCode { get; set; }
@@ -70,8 +70,9 @@ public class CourseItem
     [JsonPropertyName("teaxm")]
     public string? TeacherName { get; set; }
 
+    [ObservableProperty]
     [JsonPropertyName("jxbrs")]
-    public string? SelectedStudentCount { get; set; } // 已选人数
+    public partial string? SelectedStudentCount { get; set; } // 已选人数
 
     // 注意：第7条数据包含额外字段
     [JsonPropertyName("xid")]
@@ -94,7 +95,8 @@ public class CourseItem
 
     public override bool Equals(object? obj)
     {
-        if (obj is not CourseItem courseItem) return false;
+        if (obj is not CourseItem courseItem)
+            return false;
         return courseItem.CourseTaskCode == CourseTaskCode && courseItem.CourseName == CourseName;
     }
 

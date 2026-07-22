@@ -6,9 +6,28 @@
     xmlns:local="using:ScriptKiddie.WinUI.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
-
+    mc:Ignorable="d"
+    DataContext="{x:Bind ViewModel}">
     <Grid>
-        
+        <Grid Margin="20, 50, 20, 20">
+            <ProgressBar VerticalAlignment="Top" Margin="20, 0, 20, 0" 
+                         IsIndeterminate="True" ShowError="{Binding LoadingFailed}" Visibility="{Binding IsLoading}"/>
+            <ListView ItemsSource="{Binding SelectableCourses}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Padding="2, 12">
+                            <TextBlock Text="{Binding CourseName}"/>
+                            <TextBlock Text="{Binding TeacherName}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="已选"/>
+                                <TextBlock Text="{Binding SelectedStudentCount}"/>
+                                <TextBlock Text=" 限选"/>
+                                <TextBlock Text="{Binding PlannedStudentCount}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
     </Grid>
 </Page>
