@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:ScriptKiddie.WinUI.Utils.Converters"
+    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -14,31 +15,74 @@
             <converters:UriToImageSourceConverter x:Key="UriToImageSourceConverter"/>
         </ResourceDictionary>
     </Page.Resources>
-
-    <StackPanel DataContext="{x:Bind ViewModel}" 
-                HorizontalAlignment="Center" Spacing="10" Margin="0, 150, 0, 0" MinWidth="360">
-        <StackPanel Spacing="40">
-            <TextBox Text="{x:Bind ViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     PlaceholderText="请输入账户名"
-                     IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
-            <PasswordBox Password="{x:Bind ViewModel.Password, Mode=TwoWay}" 
-                         PlaceholderText="请输入密码"
-                         IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
-            <Grid Visibility="{x:Bind ViewModel.NeedCaptcha, Mode=OneWay}" MaxHeight="32">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition Width="100"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{x:Bind ViewModel.Captcha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="请输入验证码"
-                         IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
-                <Image Grid.Column="1" Source="{x:Bind ViewModel.CaptchaImage, Mode=OneWay, Converter={StaticResource UriToImageSourceConverter}}" 
-                       HorizontalAlignment="Right"/>
-            </Grid>
-        </StackPanel>
-        
-        <TextBlock Text="{x:Bind ViewModel.Message, Mode=OneWay}" Margin="3, 0, 0, 0"/>
-        <Button Content="Login" HorizontalAlignment="Stretch" Margin="0, 30, 0, 0"
+    <Grid>
+        <ProgressBar 
+            VerticalAlignment="Top" IsIndeterminate="True"
+            Visibility="{x:Bind ViewModel.LoginCommand.IsRunning, Mode=OneWay}"/>
+        <StackPanel HorizontalAlignment="Center" Spacing="15" Margin="20, 150, 0, 0" Width="400">
+            <StackPanel Spacing="15">
+                <StackPanel Orientation="Horizontal">
+                    <TextBox 
+                        x:Name="UserNameTextBox" 
+                        Text="{x:Bind ViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Header="账户名" PlaceholderText="请输入账户名" 
+                        InputScope="Number" Width="360"
+                        IsEnabled="{x:Bind ViewModel.LoginCommand.IsRunning, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"
+                        KeyDown="UserNameTextBox_KeyDown"/>
+                    <FontIcon 
+                        Margin="10, 30, 0, 0" Glyph="&#xE814;" Foreground="Orange"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.UserNameError.Message, Mode=OneWay}"
+                        Visibility="{x:Bind ViewModel.UserNameError.Success, Mode=OneWay}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <PasswordBox 
+                        x:Name="PasswordBox"
+                        Password="{x:Bind ViewModel.Password, Mode=TwoWay}" 
+                        Header="密码" PlaceholderText="请输入密码" 
+                        Width="360" HorizontalAlignment="Left"
+                        IsEnabled="{x:Bind ViewModel.LoginCommand.IsRunning, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"
+                        KeyDown="PasswordBox_KeyDown"/>
+                    <FontIcon 
+                        Margin="10, 30, 0, 0" Glyph="&#xE814;" Foreground="Orange"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.PasswordError.Message, Mode=OneWay}"
+                        Visibility="{x:Bind ViewModel.PasswordError.Success, Mode=OneWay}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Grid Visibility="{x:Bind ViewModel.NeedCaptcha, Mode=OneWay}" MaxHeight="64" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            x:Name="CaptchaTextBox"
+                            Grid.Column="0" Text="{x:Bind ViewModel.Captcha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Header="验证码" PlaceholderText="请输入验证码"
+                            IsEnabled="{x:Bind ViewModel.LoginCommand.IsRunning, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"
+                            KeyDown="CaptchaTextBox_KeyDown"/>
+                        <Image 
+                            Grid.Column="1" Source="{x:Bind ViewModel.CaptchaImage, Mode=OneWay, Converter={StaticResource UriToImageSourceConverter}}" 
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom" MaxHeight="32">
+                            <Interactivity:Interaction.Behaviors>
+                                <Interactivity:EventTriggerBehavior EventName="Tapped">
+                                    <Interactivity:InvokeCommandAction Command="{x:Bind ViewModel.RefreshCaptchaCommand}"/>
+                                </Interactivity:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+                        </Image>
+                    </Grid>
+                    <FontIcon 
+                        Margin="10, 30, 0, 0" Glyph="&#xE814;" Foreground="Orange"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.CaptchaError.Message, Mode=OneWay}"
+                        Visibility="{x:Bind ViewModel.CaptchaError.Success, Mode=OneWay}"/>
+                </StackPanel>
+            </StackPanel>
+            <TextBlock 
+                Text="{x:Bind ViewModel.Message, Mode=OneWay}" 
+                Margin="10, 0, 0, 0" Width="360" 
+                HorizontalAlignment="Left" TextWrapping="Wrap"/>
+            <Button 
+                Content="登录" HorizontalAlignment="Left" Margin="0, 50, 0, 0" Width="360"
+                Style="{ThemeResource AccentButtonStyle}"
                 Command="{x:Bind ViewModel.LoginCommand}"/>
-    </StackPanel>
+        </StackPanel>
+    </Grid>
 </Page>
