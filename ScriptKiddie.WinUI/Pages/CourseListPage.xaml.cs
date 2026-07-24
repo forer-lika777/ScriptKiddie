@@ -6,7 +6,7 @@ namespace ScriptKiddie.WinUI.Pages;
 
 public sealed partial class CourseListPage : Page
 {
-    public CourseListPageModel ViewModel { get; }
+    public CourseListPageModel ViewModel { get; set; }
     public CourseListPage()
     {
         InitializeComponent();

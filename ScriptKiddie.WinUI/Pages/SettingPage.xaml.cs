@@ -19,7 +19,7 @@ namespace ScriptKiddie.WinUI.Pages;
 
 public sealed partial class SettingPage : Page
 {
-    public SettingPageModel ViewModel;
+    public SettingPageModel ViewModel { get; set; }
 
     public SettingPage()
     {
