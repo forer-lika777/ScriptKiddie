@@ -30,13 +30,13 @@ public class MockCourseSelectService : ICourseSelectService
     private void SetSelectableCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectableCoursesData.json"));
-        selectableCourses = JsonSerializer.Deserialize<CourseResponse?>(content);
+        selectableCourses = (CourseResponse?)JsonSerializer.Deserialize(content, typeof(CourseResponse), CourseResponseJsonContext.Default);
     }
 
     private void SetSelectedCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectedCoursesData.json"));
-        selectedCourses = JsonSerializer.Deserialize<List<CourseItem>?>(content);
+        selectedCourses = (List<CourseItem>?)JsonSerializer.Deserialize(content, typeof(List<CourseItem>), CourseItemListJsonContext.Default);
     }
 
     public Task AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 2000)

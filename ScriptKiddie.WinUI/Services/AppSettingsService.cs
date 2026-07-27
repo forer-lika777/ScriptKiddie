@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.DataProtection;
 using Windows.Storage;
@@ -21,16 +22,17 @@ public class AppSettingsService
     }
 
     public KeyItem<bool> IsLoggedIn { get; } = new(nameof(IsLoggedIn), false);
-    public KeyItem<AccountInfo> AccountInfo { get; } = new(nameof(AccountInfo), new AccountInfo());
+    public KeyItem<AccountInfo> AccountInfo { get; } = new(nameof(AccountInfo), new AccountInfo(), AccountInfoJsonContext.Default);
     public SecureKeyItem<string> Password { get; } = new(nameof(Password), string.Empty);
-    public SecureKeyItem<List<CookieItem>> Cookies { get; } = new(nameof(Cookies), []);
+    public SecureKeyItem<List<CookieItem>> Cookies { get; } = new(nameof(Cookies), [], CookieJsonContext.Default);
 
     public class KeyItem<T> where T : notnull
     {
-        public KeyItem(string name, T defaultValue)
+        public KeyItem(string name, T defaultValue, JsonSerializerContext? jsonSerializerContext = null)
         {
             Name = name;
             value = defaultValue;
+            context = jsonSerializerContext;
             Load();
         }
 
@@ -48,6 +50,7 @@ public class AppSettingsService
         }
 
         private T value;
+        private readonly JsonSerializerContext? context;
 
         public void Load()
         {
@@ -56,7 +59,11 @@ public class AppSettingsService
                 var raw = ApplicationData.Current.LocalSettings.Values[Name];
 
                 if (raw == null)
+                {
+                    Debug.WriteLine($"设置 '{Name}' 不存在，使用默认值。");
                     return;
+                }
+
 
                 if (isDirectlySupported && raw is T typedValue)
                 {
@@ -64,13 +71,15 @@ public class AppSettingsService
                     return;
                 }
 
+                if (context == null)
+                    throw new ArgumentNullException(nameof(context), "使用自定义类型时，必须提供 JSON Serialize Context，因为 AOT 模式不支持通过反射查看你的自定义类型。");
+
                 if (raw is string json)
                 {
-                    var deserialized = JsonSerializer.Deserialize<T>(json);
-                    if (deserialized is not null)
+                    var deserialized = JsonSerializer.Deserialize(json, typeof(T), context);
+                    if (deserialized is T typed)
                     {
-                        value = deserialized;
-                        return;
+                        value = typed;
                     }
                 }
             }
@@ -92,14 +101,17 @@ public class AppSettingsService
                 }
                 else
                 {
-                    valueToStore = JsonSerializer.Serialize(value);
+                    if (context == null)
+                        throw new ArgumentNullException(nameof(context), $"使用自定义类型{typeof(T).Name}时，必须提供 JSON Serialize Context，因为 AOT 模式不支持通过反射查看你的自定义类型。");
+
+                    valueToStore = JsonSerializer.Serialize(value, typeof(T), context);
                 }
 
                 ApplicationData.Current.LocalSettings.Values[Name] = valueToStore;
             }
             catch (JsonException jsonEx)
             {
-                Debug.WriteLine($"保存设置 '{Name}' 失败。检查是否为此类添加了 JSON 序列化注解？类型：{typeof(T)}，序列化错误信息: {jsonEx.Message}");
+                Debug.WriteLine($"保存设置 '{Name}' 失败。检查是否为此类添加了 JSON 序列化注解？类型：{typeof(T).Name}，序列化错误信息: {jsonEx.Message}");
             }
             catch (Exception ex)
             {
@@ -126,10 +138,11 @@ public class AppSettingsService
 
     public class SecureKeyItem<T> where T : notnull
     {
-        public SecureKeyItem(string name, T defaultValue)
+        public SecureKeyItem(string name, T defaultValue, JsonSerializerContext? jsonSerializerContext = null)
         {
             Name = name;
             value = defaultValue;
+            context = jsonSerializerContext;
             Load();
         }
 
@@ -147,6 +160,7 @@ public class AppSettingsService
         }
 
         private T value;
+        private readonly JsonSerializerContext? context;
 
         public void Load()
         {
@@ -154,17 +168,30 @@ public class AppSettingsService
             {
                 var raw = ApplicationData.Current.LocalSettings.Values[Name];
 
-                if (raw == null)
-                    return;
+                if (raw is null || raw is not string encryptedData)
+                    throw new Exception($"无法读取存储的数据。期望得到 string，实际为{raw?.GetType()}");
 
-                if (raw is string data)
+                var decrypted = Decrypt(encryptedData);
+
+                if (typeof(T) == typeof(string))
                 {
-                    var deserialized = JsonSerializer.Deserialize<T>(SecureKeyItem<T>.Decrypt(data));
-                    if (deserialized is not null)
-                    {
-                        value = deserialized;
-                        return;
-                    }
+                    value = (T)(object)decrypted;
+                    return;
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException($"使用自定义类型{typeof(T).Name}时，必须提供 JSON Serialize Context，因为 AOT 模式不支持通过反射查看你的自定义类型。");
+                }
+
+                var deserialized = JsonSerializer.Deserialize(decrypted, typeof(T), context);
+                if (deserialized is T typed)
+                {
+                    value = typed;
+                }
+                else
+                {
+                    throw new Exception("反序列化未得到预期类型。");
                 }
             }
             catch (Exception ex)
@@ -177,9 +204,24 @@ public class AppSettingsService
         {
             try
             {
-                string jsonData = JsonSerializer.Serialize(value);
+                string jsonData;
 
-                ApplicationData.Current.LocalSettings.Values[Name] = SecureKeyItem<T>.Encrypt(jsonData);
+                if (typeof(T) == typeof(string))
+                {
+                    jsonData = value?.ToString() ?? string.Empty;
+                }
+                else
+                {
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException($"使用自定义类型{typeof(T).Name}时，必须提供 JSON Serialize Context，因为 AOT 模式不支持通过反射查看你的自定义类型。");
+                    }
+
+                    jsonData = JsonSerializer.Serialize(value, typeof(T), context);
+                }
+
+                var encrypted = Encrypt(jsonData);
+                ApplicationData.Current.LocalSettings.Values[Name] = encrypted;
             }
             catch (JsonException jsonEx)
             {
@@ -225,7 +267,7 @@ public class AppSettingsService
             catch (Exception ex)
             {
                 Debug.WriteLine($"解密失败，数据可能损坏或密钥不匹配: {ex.Message}");
-                return JsonSerializer.Serialize(default(T)!); // 返回默认值的 JSON 字符串防止反序列化崩溃
+                return string.Empty; // 返回默认值的 JSON 字符串防止反序列化崩溃
             }
         }
     }

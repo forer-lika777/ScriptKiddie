@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using ScriptKiddie.WinUI.Services;
 using ScriptKiddie.WinUI.ViewModels;
 
@@ -6,15 +7,17 @@ namespace ScriptKiddie.WinUI;
 
 public sealed partial class MainWindow : Window
 {
-    private readonly AppSettingsService appSettingsService;
-    public MainWindowModel ViewModel { get; }
+    public MainWindowModel ViewModel { get; set; }
 
-    public MainWindow(AppSettingsService appSettingsService, MainWindowModel mainWindowModel)
+    public MainWindow()
     {
         InitializeComponent();
         ExtendsContentIntoTitleBar = true;
 
-        this.appSettingsService = appSettingsService;
-        ViewModel = mainWindowModel;
+        this.ViewModel = App.Current.Services.GetRequiredService<MainWindowModel>();
     }
+
+    public Visibility BoolToVis(bool isLoggedIn) => isLoggedIn ? Visibility.Visible : Visibility.Collapsed;
+
+    public Visibility BoolToRevVis(bool isLoggedIn) => isLoggedIn ? Visibility.Collapsed : Visibility.Visible;
 }

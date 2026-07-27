@@ -7,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pages="using:ScriptKiddie.WinUI.Pages"
-    xmlns:converters="using:ScriptKiddie.WinUI.Utils.Converters"
     mc:Ignorable="d"
     Title="ScriptKiddie.WinUI">
 
@@ -15,8 +14,8 @@
         <MicaBackdrop/>
     </Window.SystemBackdrop>
 
-    <Grid DataContext="{x:Bind ViewModel}">
-        <pages:MainPage Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibilityConverter}}"/>
-        <pages:LoginPage Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToReversedVisibilityConverter}}"/>
+    <Grid>
+        <pages:MainPage Visibility="{x:Bind BoolToVis(ViewModel.IsLoggedIn), Mode=OneWay}"/>
+        <pages:LoginPage Visibility="{x:Bind BoolToRevVis(ViewModel.IsLoggedIn), Mode=OneWay}"/>
     </Grid>
 </Window>

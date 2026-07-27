@@ -13,6 +13,8 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
 	<LangVersion>14</LangVersion>
+	<PublishAot>true</PublishAot>
+	<IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
   <ItemGroup Condition="'$(Configuration)' != 'Debug'">
     <Compile Remove="Mocks\**\*.cs" />
