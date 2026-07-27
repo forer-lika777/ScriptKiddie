@@ -27,6 +27,7 @@
   <ItemGroup>
     <None Remove="MainPage.xaml" />
     <None Remove="Pages\AccontManagePage.xaml" />
+    <None Remove="Pages\Controls\CourseInfoPanel.xaml" />
     <None Remove="Pages\LoginPage.xaml" />
   </ItemGroup>
 
@@ -86,9 +87,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Update="Mocks\Data\captcha1 - 复制.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Mocks\Data\captcha1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -101,6 +99,9 @@
     <None Update="Mocks\Data\SelectableCoursesData.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="Pages\Controls\CourseInfoPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\AccontManagePage.xaml">
