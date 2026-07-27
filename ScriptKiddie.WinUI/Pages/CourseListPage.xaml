@@ -4,27 +4,90 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:ScriptKiddie.WinUI.Pages"
+    xmlns:models="using:ScriptKiddie.WinUI.Models"
+    xmlns:converters="using:ScriptKiddie.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    <Page.Resources>
+        <converters:IsFullStatusToColorConverter x:Key="IsFullStatusToColorConverter"/>
+        <converters:IsFullStatusToStringConverter x:Key="IsFullStatusToStringConverter"/>
+    </Page.Resources>
     <Grid Margin="20, 50, 20, 20">
-        <ProgressBar VerticalAlignment="Top" Margin="20, 0, 20, 0"
-                     IsIndeterminate="True" ShowError="{x:Bind ViewModel.LoadingFailed, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
-        <ListView ItemsSource="{x:Bind ViewModel.SelectableCourses, Mode=OneWay}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Padding="2, 12">
-                        <TextBlock Text="{Binding CourseName}"/>
-                        <TextBlock Text="{Binding TeacherName}"/>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="已选"/>
-                            <TextBlock Text="{Binding SelectedStudentCount}"/>
-                            <TextBlock Text=" 限选"/>
-                            <TextBlock Text="{Binding PlannedStudentCount}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <ProgressBar 
+            VerticalAlignment="Top" Margin="20, 0, 20, 0"
+            IsIndeterminate="True" ShowError="{x:Bind ViewModel.LoadingFailed, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
+        <ScrollView HorizontalScrollBarVisibility="Auto">
+            <ListView ItemsSource="{x:Bind ViewModel.SelectableCourses, Mode=OneWay}">
+                <ListView.Header>
+                    <Grid Padding="16,12" ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition MinWidth="80"/>
+                            <ColumnDefinition MinWidth="100"/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="35"/>
+                            <ColumnDefinition Width="35"/>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="170" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="课程名称"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Grid.Column="1" Text="活动描述"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Grid.Column="2" Text="教师"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Grid.Column="3" Text="已选"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Grid.Column="4" Text="限选"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Grid.Column="5" Text="状态"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Grid.Column="6" Text="操作"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </Grid>
+                </ListView.Header>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:CourseItem">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition MinWidth="80"/>
+                                <ColumnDefinition MinWidth="100"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="35"/>
+                                <ColumnDefinition Width="35"/>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition Width="170" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                       Text="{x:Bind CourseName}" ToolTipService.ToolTip="{x:Bind CourseName}"/>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                       Text="{x:Bind ActivityDescription}" ToolTipService.ToolTip="{x:Bind ActivityDescription}"/>
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                                       Text="{x:Bind TeacherName}" ToolTipService.ToolTip="{x:Bind TeacherName}"/>
+                            <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                                       Text="{x:Bind SelectedStudentCount, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectedStudentCount, Mode=OneWay}"/>
+                            <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                                       Text="{x:Bind PlannedStudentCount}" ToolTipService.ToolTip="{x:Bind PlannedStudentCount}"/>
+                            <TextBlock Grid.Column="5" VerticalAlignment="Center"
+                                       Text="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}"
+                                       ToolTipService.ToolTip="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}"
+                                       Foreground="{x:Bind IsFull, Converter={StaticResource IsFullStatusToColorConverter}, Mode=OneWay}"/>
+                            <StackPanel 
+                                Grid.Column="9" Orientation="Horizontal" Spacing="10"
+                                Padding="0, 7, 0, 7">
+                                <Button x:Name="ViewMoreButton" VerticalAlignment="Stretch" Content="详细信息" Click="ViewMoreButton_Click"/>
+                                <Button VerticalAlignment="Stretch" Content="添加课程"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style BasedOn="{StaticResource DefaultListViewItemStyle}"
+                           TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </ScrollView>
     </Grid>
 </Page>
