@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Utils.Converters;
 
-internal class InverseBoolConverter : IValueConverter
+public partial class InverseBoolConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
