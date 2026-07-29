@@ -6,12 +6,12 @@ namespace ScriptKiddie.WinUI.ViewModels;
 
 public partial class MainWindowModel : ObservableObject, IRecipient<LoginSuccessMessage>
 {
-    private readonly AppSettingsService appSettingsService;
+    private readonly IAppSettingsService appSettingsService;
 
     [ObservableProperty]
     public partial bool IsLoggedIn { get; set; } = false;
 
-    public MainWindowModel(AppSettingsService appSettingsService)
+    public MainWindowModel(IAppSettingsService appSettingsService)
     {
         this.appSettingsService = appSettingsService;
 

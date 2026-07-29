@@ -75,7 +75,7 @@ public partial class App : Application
 
     private static void AddServices(ServiceCollection services)
     {
-        services.AddSingleton<AppSettingsService>();
+        services.AddSingleton<IAppSettingsService, WindowsAppSettingsService>();
 
         services.AddSingleton<ICourseSelectService, MockCourseSelectService>();
         services.AddSingleton<ILoginService, MockLoginService>();

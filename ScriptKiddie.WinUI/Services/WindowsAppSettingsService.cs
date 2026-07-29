@@ -12,21 +12,21 @@ using Windows.Storage.Streams;
 
 namespace ScriptKiddie.WinUI.Services;
 
-public class AppSettingsService
+public class WindowsAppSettingsService : IAppSettingsService
 {
-    private readonly ILogger<AppSettingsService> logger;
+    private readonly ILogger<WindowsAppSettingsService> logger;
 
-    public AppSettingsService(ILogger<AppSettingsService> logger)
+    public WindowsAppSettingsService(ILogger<WindowsAppSettingsService> logger)
     {
         this.logger = logger;
     }
 
-    public KeyItem<bool> IsLoggedIn { get; } = new(nameof(IsLoggedIn), false);
-    public KeyItem<AccountInfo> AccountInfo { get; } = new(nameof(AccountInfo), new AccountInfo(), AccountInfoJsonContext.Default);
-    public SecureKeyItem<string> Password { get; } = new(nameof(Password), string.Empty);
-    public SecureKeyItem<List<CookieItem>> Cookies { get; } = new(nameof(Cookies), [], CookieJsonContext.Default);
+    public IKeyItem<bool> IsLoggedIn { get; } = new KeyItem<bool>(nameof(IsLoggedIn), false);
+    public IKeyItem<AccountInfo> AccountInfo { get; } = new KeyItem<AccountInfo>(nameof(AccountInfo), new AccountInfo(), AccountInfoJsonContext.Default);
+    public IKeyItem<string> Password { get; } = new SecureKeyItem<string>(nameof(Password), string.Empty);
+    public IKeyItem<List<CookieItem>> Cookies { get; } = new SecureKeyItem<List<CookieItem>>(nameof(Cookies), [], CookieJsonContext.Default);
 
-    public class KeyItem<T> where T : notnull
+    public class KeyItem<T> : IKeyItem<T> where T : notnull
     {
         public KeyItem(string name, T defaultValue, JsonSerializerContext? jsonSerializerContext = null)
         {
@@ -63,7 +63,6 @@ public class AppSettingsService
                     Debug.WriteLine($"设置 '{Name}' 不存在，使用默认值。");
                     return;
                 }
-
 
                 if (isDirectlySupported && raw is T typedValue)
                 {
@@ -136,7 +135,7 @@ public class AppSettingsService
             typeof(T) == typeof(byte[]);
     }
 
-    public class SecureKeyItem<T> where T : notnull
+    public class SecureKeyItem<T> : IKeyItem<T> where T : notnull
     {
         public SecureKeyItem(string name, T defaultValue, JsonSerializerContext? jsonSerializerContext = null)
         {
@@ -169,7 +168,10 @@ public class AppSettingsService
                 var raw = ApplicationData.Current.LocalSettings.Values[Name];
 
                 if (raw is null || raw is not string encryptedData)
+                {
+                    Save(); // 保存默认值到存储
                     throw new Exception($"无法读取存储的数据。期望得到 string，实际为{raw?.GetType()}");
+                }
 
                 var decrypted = Decrypt(encryptedData);
 
@@ -226,12 +228,12 @@ public class AppSettingsService
             catch (JsonException jsonEx)
             {
                 Debug.WriteLine($"保存设置 '{Name}' 失败。检查是否为此类添加了 JSON 序列化注解？类型：{typeof(T)}，序列化错误信息: {jsonEx.Message}");
-                throw;
+                throw new InvalidOperationException($"保存设置 '{Name}' 失败，请检查序列化配置。", jsonEx);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"保存加密设置失败。设置名: '{Name}'。错误: {ex.Message}");
-                throw;
+                throw new InvalidOperationException($"保存设置 '{Name}' 失败。{ex.Message}");
             }
         }
 

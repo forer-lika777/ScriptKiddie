@@ -11,13 +11,13 @@ public class AccountManageService
 {
     private readonly ILoginService loginService;
     private readonly ICourseSelectService courseSelectService;
-    private readonly AppSettingsService appSettingsService;
+    private readonly IAppSettingsService appSettingsService;
 
     private AccountInfo? accountInfo;
 
     private bool hasLogin = false;
 
-    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, AppSettingsService appSettingsService)
+    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, IAppSettingsService appSettingsService)
     {
         this.loginService = loginService;
         this.courseSelectService = courseSelectService;

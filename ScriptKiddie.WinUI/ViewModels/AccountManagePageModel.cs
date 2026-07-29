@@ -11,9 +11,9 @@ namespace ScriptKiddie.WinUI.ViewModels;
 public partial class AccountManagePageModel : ObservableObject, IRecipient<AccountInfoChangedMessage>
 {
     private readonly AccountManageService accountManageService;
-    private readonly AppSettingsService appSettingsService;
+    private readonly IAppSettingsService appSettingsService;
 
-    public AccountManagePageModel(AccountManageService accountManageService, AppSettingsService appSettingsService)
+    public AccountManagePageModel(AccountManageService accountManageService, IAppSettingsService appSettingsService)
     {
         this.accountManageService = accountManageService;
         this.appSettingsService = appSettingsService;
