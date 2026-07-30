@@ -1,7 +1,8 @@
 {
   "profiles": {
     "ScriptKiddie.WinUI (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
     },
     "ScriptKiddie.WinUI (Unpackaged)": {
       "commandName": "Project"
