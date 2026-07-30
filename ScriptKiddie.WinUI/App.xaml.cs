@@ -68,7 +68,7 @@ public partial class App : Application
     {
         services.AddSingleton<CourseListPageModel>();
         services.AddSingleton<MainWindowModel>();
-        services.AddSingleton<LoginPageModel>();
+        services.AddTransient<LoginPageModel>();
         services.AddSingleton<AccountManagePageModel>();
         services.AddSingleton<SettingPageModel>();
     }
