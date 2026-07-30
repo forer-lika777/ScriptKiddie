@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.ViewModels;
 
-public class SettingPageModel : ObservableObject
+public partial class SettingPageModel : ObservableObject
 {
 
 }
