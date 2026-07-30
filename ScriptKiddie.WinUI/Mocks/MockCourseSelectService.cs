@@ -44,15 +44,15 @@ public class MockCourseSelectService : ICourseSelectService
         throw new NotImplementedException();
     }
 
-    public async Task<CourseResponse?> GetSelectableCoursesAsync()
+    public async Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(700);
+        await Task.Delay(700, cancellationToken);
         return selectableCourses;
     }
 
-    public async Task<List<CourseItem>?> GetSelectedCoursesAsync()
+    public async Task<List<CourseItem>?> GetSelectedCoursesAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(700);
+        await Task.Delay(700, cancellationToken);
         return selectedCourses;
     }
 
@@ -75,5 +75,11 @@ public class MockCourseSelectService : ICourseSelectService
             if (completed)
                 return;
         }
+    }
+
+    public async Task<int?> GetSelectLimitCountAsync(CancellationToken cancellationToken)
+    {
+        await Task.Delay(1000, cancellationToken);
+        return 2;
     }
 }

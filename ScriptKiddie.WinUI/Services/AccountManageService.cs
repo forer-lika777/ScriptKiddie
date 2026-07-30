@@ -69,12 +69,12 @@ public class AccountManageService
 
     public async Task<CourseResponse?> GetSelectableCoursesAsync()
     {
-        return await courseSelectService.GetSelectableCoursesAsync();
+        return await courseSelectService.GetSelectableCoursesAsync(CancellationToken.None);
     }
 
     public async Task<List<CourseItem>?> GetSelectedCoursesAsync()
     {
-        return await courseSelectService.GetSelectedCoursesAsync();
+        return await courseSelectService.GetSelectedCoursesAsync(CancellationToken.None);
     }
 
     public void AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)

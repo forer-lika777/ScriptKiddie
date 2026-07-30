@@ -2,6 +2,7 @@
 using ScriptKiddie.WinUI.Models;
 using ScriptKiddie.WinUI.Services;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.ViewModels;
@@ -17,9 +18,10 @@ public partial class CourseListPageModel : ObservableObject
 
     private async Task SyncCoursesContent()
     {
-        var selectableCourse = await courseSelectService.GetSelectableCoursesAsync();
-        var selectedCourses = await courseSelectService.GetSelectedCoursesAsync();
-        if (selectableCourse is null || selectedCourses is null)
+        CourseResponse? selectableCourse = await courseSelectService.GetSelectableCoursesAsync(CancellationToken.None);
+        List<CourseItem>? selectedCourses = await courseSelectService.GetSelectedCoursesAsync(CancellationToken.None);
+        int? limitCount = await courseSelectService.GetSelectLimitCountAsync(CancellationToken.None);
+        if (selectableCourse is null || selectedCourses is null || limitCount is null)
         {
             LoadingFailed = true;
         }
@@ -27,7 +29,9 @@ public partial class CourseListPageModel : ObservableObject
         {
             SelectableCourses = selectableCourse.Rows;
             SelectedCourses = selectedCourses;
+            SelectLimitCount = (int)limitCount;
         }
+
         IsLoading = false;
     }
 
@@ -45,4 +49,10 @@ public partial class CourseListPageModel : ObservableObject
 
     [ObservableProperty]
     public partial List<CourseItem> SelectedCourses { get; set; } = [];
+
+    [ObservableProperty]
+    public partial List<CourseItem> PreSelectCourses { get; set; } = [];
+
+    [ObservableProperty]
+    public partial int SelectLimitCount { get; set; } = 0;
 }
