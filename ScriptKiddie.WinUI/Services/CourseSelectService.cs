@@ -332,22 +332,26 @@ public partial class CourseSelectService : ICourseSelectService
 
         // 通过 id="header" 定位到 h2 标签
         var headerNode = doc.GetElementbyId("header");
-        if (headerNode != null)
+        if (headerNode == null)
         {
-            // 获取包含文本的完整内容
-            string fullText = headerNode.InnerText.Trim();
-
-            // 使用正则表达式提取 "限选 X" 中的数字
-            var match = SelectLimitCountRegex().Match(fullText);
-            if (match.Success)
-            {
-                return int.Parse(match.Groups[1].Value);
-            }
+            logger.LogError("无法找到 header 元素。提取限选字段失败。");
+            return null;
         }
 
-        return null;
+        // 获取包含文本的完整内容
+        string fullText = headerNode.InnerText.Trim();
+
+        // 使用正则表达式提取 "限选 X" 中的数字
+        var match = SelectLimitCountRegex().Match(fullText);
+        if (!match.Success)
+        {
+            logger.LogError("没有匹配到目标数字。提取限选字段失败。");
+            return null;
+        }
+
+        return int.Parse(match.Groups[1].Value);
     }
 
-    [GeneratedRegex(@"限选\s*(\d+)")]
+    [GeneratedRegex(@"限选(?:&nbsp;|\s)*(\d+)")]
     private static partial Regex SelectLimitCountRegex();
 }
