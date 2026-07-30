@@ -9,18 +9,18 @@ namespace ScriptKiddie.WinUI.ViewModels;
 
 public partial class CourseListPageModel : ObservableObject
 {
-    private readonly ICourseSelectService courseSelectService;
-    public CourseListPageModel(ICourseSelectService courseSelectService)
+    private readonly AccountManageService accountManageService;
+    public CourseListPageModel(ICourseSelectService courseSelectService, AccountManageService accountManageService)
     {
-        this.courseSelectService = courseSelectService;
+        this.accountManageService = accountManageService;
         _ = SyncCoursesContent();
     }
 
     private async Task SyncCoursesContent()
     {
-        CourseResponse? selectableCourse = await courseSelectService.GetSelectableCoursesAsync(CancellationToken.None);
-        List<CourseItem>? selectedCourses = await courseSelectService.GetSelectedCoursesAsync(CancellationToken.None);
-        int? limitCount = await courseSelectService.GetSelectLimitCountAsync(CancellationToken.None);
+        CourseResponse? selectableCourse = await accountManageService.GetSelectableCoursesAsync();
+        List<CourseItem>? selectedCourses = await accountManageService.GetSelectedCoursesAsync();
+        int? limitCount = await accountManageService.GetSelectLimitCountAsync();
         if (selectableCourse is null || selectedCourses is null || limitCount is null)
         {
             LoadingFailed = true;

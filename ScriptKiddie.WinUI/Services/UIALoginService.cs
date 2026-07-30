@@ -137,7 +137,7 @@ public class UIALoginService : ILoginService
 
             if (response.RequestMessage?.RequestUri?.ToString() == MAIN_PAGE_URL)
             {
-                logger.LogInformation(AccountServiceStr.LoginSuccess);
+                logger.LogInformation("登录成功。");
                 return await BuildLoginResult(loginOption, response.StatusCode);
             }
 

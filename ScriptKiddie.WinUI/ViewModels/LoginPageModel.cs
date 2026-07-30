@@ -100,6 +100,7 @@ public partial class LoginPageModel : ObservableObject
             UserName = this.UserName,
             Password = this.Password,
             Captcha = this.Captcha,
+            ExportCookie = true,
             LoadCookie = false
         };
 

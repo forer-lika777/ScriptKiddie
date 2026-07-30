@@ -52,7 +52,12 @@ public class AccountManageService
         if (hasLogin = result.Success)
         {
             appSettingsService.IsLoggedIn.Value = true;
-            appSettingsService.Cookies.Value = result.CookieContent.ToCookieItemList();
+
+            var cookies = result.CookieContent.ToCookieItemList();
+            if (cookies.Count > 0)
+            {
+                appSettingsService.Cookies.Value = cookies;
+            }
 
             accountInfo = new AccountInfo
             {
@@ -88,6 +93,11 @@ public class AccountManageService
     public async Task<List<CourseItem>?> GetSelectedCoursesAsync()
     {
         return await courseSelectService.GetSelectedCoursesAsync(logoutCancellationToken);
+    }
+
+    public async Task<int?> GetSelectLimitCountAsync()
+    {
+        return await courseSelectService.GetSelectLimitCountAsync(logoutCancellationToken);
     }
 
     public void AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)
