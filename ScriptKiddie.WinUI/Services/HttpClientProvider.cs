@@ -10,8 +10,12 @@ using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Services;
 
+/// <summary>
+/// 提供全局唯一的 HttpClient 实例，支持线程安全的 Cookie 管理。
+/// </summary>
 public class HttpClientProvider
 {
+    private readonly ReaderWriterLockSlim rwLock = new();
     private HttpClient? httpClient;
     private HttpClientHandler? httpClientHandler;
     
@@ -22,22 +26,30 @@ public class HttpClientProvider
 
     private void CreateInstance(CookieCollection? cookies = null)
     {
-        httpClient?.Dispose();
-        httpClientHandler?.Dispose();
-
-        httpClientHandler = new HttpClientHandler
+        rwLock.EnterWriteLock();
+        try
         {
-            AllowAutoRedirect = true,
-            UseCookies = true,
-            CookieContainer = new CookieContainer(),
-        };
+            httpClient?.Dispose();
+            httpClientHandler?.Dispose();
 
-        httpClient = new HttpClient(httpClientHandler);
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-        
-        if (cookies != null)
+            httpClientHandler = new HttpClientHandler
+            {
+                AllowAutoRedirect = true,
+                UseCookies = true,
+                CookieContainer = new CookieContainer(),
+            };
+
+            httpClient = new HttpClient(httpClientHandler);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            
+            if (cookies != null)
+            {
+                httpClientHandler.CookieContainer.Add(cookies);
+            }
+        }
+        finally
         {
-            httpClientHandler.CookieContainer.Add(cookies);
+            rwLock.ExitWriteLock();
         }
     }
 
@@ -48,11 +60,27 @@ public class HttpClientProvider
 
     public CookieCollection GetCookies()
     {
-        return httpClientHandler!.CookieContainer.GetAllCookies();
+        rwLock.EnterReadLock();
+        try
+        {
+            return httpClientHandler!.CookieContainer.GetAllCookies();
+        }
+        finally
+        {
+            rwLock.ExitReadLock();
+        }
     }
 
     public HttpClient GetCurrentClient()
     {
-        return httpClient!;
+        rwLock.EnterReadLock();
+        try
+        {
+            return httpClient!;
+        }
+        finally
+        {
+            rwLock.ExitReadLock();
+        }
     }
 }
