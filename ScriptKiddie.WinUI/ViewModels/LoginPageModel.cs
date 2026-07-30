@@ -128,12 +128,10 @@ public partial class LoginPageModel : ObservableValidator
 
     public partial class ValidationErrorStatus : ObservableObject
     {
-        public ValidationErrorStatus() { }
-
-        public ValidationErrorStatus(string message)
+        public ValidationErrorStatus(string? message = null)
         {
-            Message = message;
-            Success = !string.IsNullOrWhiteSpace(message);
+            Message = message ?? string.Empty;
+            Success = string.IsNullOrWhiteSpace(message);
         }
 
         [ObservableProperty]

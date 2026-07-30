@@ -32,7 +32,7 @@
                     <FontIcon 
                         Margin="10, 30, 0, 0" Glyph="&#xE814;" Foreground="Orange"
                         ToolTipService.ToolTip="{x:Bind ViewModel.UserNameError.Message, Mode=OneWay}"
-                        Visibility="{x:Bind ViewModel.UserNameError.Success, Mode=OneWay}"/>
+                        Visibility="{x:Bind ViewModel.UserNameError.Success, Converter={StaticResource BoolToReversedVisibilityConverter}, Mode=OneWay}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <PasswordBox 
@@ -45,7 +45,7 @@
                     <FontIcon 
                         Margin="10, 30, 0, 0" Glyph="&#xE814;" Foreground="Orange"
                         ToolTipService.ToolTip="{x:Bind ViewModel.PasswordError.Message, Mode=OneWay}"
-                        Visibility="{x:Bind ViewModel.PasswordError.Success, Mode=OneWay}"/>
+                        Visibility="{x:Bind ViewModel.PasswordError.Success, Converter={StaticResource BoolToReversedVisibilityConverter}, Mode=OneWay}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Grid Visibility="{x:Bind ViewModel.NeedCaptcha, Mode=OneWay}" MaxHeight="64" Width="360">
@@ -72,7 +72,7 @@
                     <FontIcon 
                         Margin="10, 30, 0, 0" Glyph="&#xE814;" Foreground="Orange"
                         ToolTipService.ToolTip="{x:Bind ViewModel.CaptchaError.Message, Mode=OneWay}"
-                        Visibility="{x:Bind ViewModel.CaptchaError.Success, Mode=OneWay}"/>
+                        Visibility="{x:Bind ViewModel.CaptchaError.Success, Converter={StaticResource BoolToReversedVisibilityConverter}, Mode=OneWay}"/>
                 </StackPanel>
             </StackPanel>
             <TextBlock 
