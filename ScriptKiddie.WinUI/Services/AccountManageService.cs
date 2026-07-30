@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace ScriptKiddie.WinUI.Services;
 
@@ -12,16 +13,21 @@ public class AccountManageService
     private readonly ILoginService loginService;
     private readonly ICourseSelectService courseSelectService;
     private readonly IAppSettingsService appSettingsService;
+    private readonly HttpClientProvider httpClientProvider;
+
+    private CancellationTokenSource? logoutCancellationTokenSource;
+    private CancellationToken logoutCancellationToken;
 
     private AccountInfo? accountInfo;
 
     private bool hasLogin = false;
 
-    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, IAppSettingsService appSettingsService)
+    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, IAppSettingsService appSettingsService, HttpClientProvider httpClientProvider)
     {
         this.loginService = loginService;
         this.courseSelectService = courseSelectService;
         this.appSettingsService = appSettingsService;
+        this.httpClientProvider = httpClientProvider;
         Init();
     }
 
@@ -29,12 +35,18 @@ public class AccountManageService
     {
         if (appSettingsService.IsLoggedIn.Value)
         {
+            logoutCancellationTokenSource = new CancellationTokenSource();
+            logoutCancellationToken = logoutCancellationTokenSource.Token;
+            var cookies = appSettingsService.Cookies.Value;
+            httpClientProvider.SetCookies(cookies.ToCookieCollection());
             accountInfo = appSettingsService.AccountInfo.Value;
         }
     }
 
     public async Task<LoginResult> LoginAsync(LoginOption loginOption)
     {
+        logoutCancellationTokenSource = new CancellationTokenSource();
+        logoutCancellationToken = logoutCancellationTokenSource.Token;
         var result = await loginService.LoginAsync(loginOption);
 
         if (hasLogin = result.Success)
@@ -59,6 +71,7 @@ public class AccountManageService
 
     public async Task<bool> LogoutAsync()
     {
+        logoutCancellationTokenSource?.Cancel();
         return await loginService.LogoutAsync();
     }
 
@@ -69,12 +82,12 @@ public class AccountManageService
 
     public async Task<CourseResponse?> GetSelectableCoursesAsync()
     {
-        return await courseSelectService.GetSelectableCoursesAsync(CancellationToken.None);
+        return await courseSelectService.GetSelectableCoursesAsync(logoutCancellationToken);
     }
 
     public async Task<List<CourseItem>?> GetSelectedCoursesAsync()
     {
-        return await courseSelectService.GetSelectedCoursesAsync(CancellationToken.None);
+        return await courseSelectService.GetSelectedCoursesAsync(logoutCancellationToken);
     }
 
     public void AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)
