@@ -98,6 +98,7 @@ public partial class LoginPageModel : ObservableValidator
             UserName = this.UserName,
             Password = this.Password,
             Captcha = this.Captcha,
+            ExportCookie = true,
             LoadCookie = false
         };
 

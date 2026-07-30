@@ -90,15 +90,17 @@ public partial class CourseSelectService : ICourseSelectService
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    logger.LogDebug("Successfully request selectable courses.");
+                    string d = await response.Content.ReadAsStringAsync();
                     var courseResponse = await JsonSerializer.DeserializeAsync(await response.Content.ReadAsStreamAsync(cancellationToken), CourseResponseJsonContext.Default.CourseResponse, CancellationToken.None);
 
                     if (courseResponse == null)
                     {
-                        logger.LogDebug("Could not deserialize raw data to type {typeof(CourseResponseJsonContext)}. Raw data: {response.Content}", typeof(CourseResponseJsonContext), response.Content.ReadAsStreamAsync(cancellationToken));
+                        logger.LogError("Could not deserialize raw data to type {typeof(CourseResponseJsonContext)}. Raw data: {response.Content}", typeof(CourseResponseJsonContext), response.Content.ReadAsStreamAsync(cancellationToken));
                         selectableCourses = courses.Total == -1 ? null : courses;
                         return;
                     }
+
+                    logger.LogDebug("Successfully request selectable courses.");
 
                     courses.Total = total = courseResponse.Total;
 
@@ -113,7 +115,7 @@ public partial class CourseSelectService : ICourseSelectService
 
                 string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
-                logger.LogDebug("Request returned a failure. Raw data: {responseContent}", responseContent);
+                logger.LogError("Request returned a failure. Raw data: {responseContent}", responseContent);
 
                 selectableCourses = courses.Total == -1 ? null : courses;
                 return;
@@ -123,7 +125,7 @@ public partial class CourseSelectService : ICourseSelectService
         }
         catch (Exception ex)
         {
-            logger.LogDebug("{Message}", ex.Message);
+            logger.LogError("{Message}", ex.Message);
             return;
         }
     }
