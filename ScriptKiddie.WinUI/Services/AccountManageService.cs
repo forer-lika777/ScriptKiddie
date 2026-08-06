@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using ScriptKiddie.WinUI.Models;
 using System;
@@ -62,7 +61,7 @@ public partial class AccountManageService
 
             while (retryCount < 20 && !loggedOutCts!.IsCancellationRequested)
             {
-               var result = await loginService.LoginAsync(option, loggedOutCts!.Token);
+                var result = await loginService.LoginAsync(option, loggedOutCts!.Token);
 
                 if (result.Success)
                 {
