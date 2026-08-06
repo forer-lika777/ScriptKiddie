@@ -22,14 +22,49 @@ public class WindowsAppSettingsService : IAppSettingsService
         this.logger = logger;
     }
 
+    /// <summary>
+    /// 保存是否处于登录状态的键值。
+    /// </summary>
     public IKeyItem<bool> IsLoggedIn { get; } = new KeyItem<bool>(nameof(IsLoggedIn), false);
+
+    /// <summary>
+    /// 保存部分用户信息的键值。
+    /// </summary>
     public IKeyItem<AccountInfo> AccountInfo { get; } = new KeyItem<AccountInfo>(nameof(AccountInfo), new AccountInfo(), AccountInfoJsonContext.Default);
+
+    /// <summary>
+    /// 保存账户的密码的键值。
+    /// </summary>
     public IKeyItem<string> Password { get; } = new SecureKeyItem<string>(nameof(Password), string.Empty);
+
+    /// <summary>
+    /// 保存登录会话的 Cookie 的键值。
+    /// </summary>
     public IKeyItem<List<CookieItem>> Cookies { get; } = new SecureKeyItem<List<CookieItem>>(nameof(Cookies), [], CookieJsonContext.Default);
+
+
+    /// <summary>
+    /// 保存选课时间表的键值。
+    /// </summary>
     public IKeyItem<ObservableCollection<SelectSchedule>> SelectSchedules { get; } = new KeyItem<ObservableCollection<SelectSchedule>>(nameof(SelectSchedules), [], SelectScheduleListContext.Default);
 
+    /// <summary>
+    /// 用于在 Windows LocalSettings 中存储和读取配置项的键值对容器。
+    /// 接受直接存储基础类型，也接受支持 JSON 序列化的自定义类型。
+    /// 接受的的基础类型：bool, string, int, uint, long, ulong, float, double, char, DateTime, TimeSpan, Guid, byte[].
+    /// </summary>
+    /// <typeparam name="T">存储的值的类型。</typeparam>
     public class KeyItem<T> : IKeyItem<T> where T : notnull
     {
+        /// <summary>
+        /// 初始化 KeyItem 的新实例。
+        /// </summary>
+        /// <param name="name">存储时使用的键名，对应 LocalSettings 中的 Key。</param>
+        /// <param name="defaultValue">当设置不存在时返回的默认值。</param>
+        /// <param name="jsonSerializerContext">
+        /// 用于 JSON 序列化的上下文。对于自定义类型，必须传入对应的 JsonSerializerContext，否则运行时会在保存时抛出异常。
+        /// 对于直接支持的类型（int, string, bool, DateTime 等），可以传入 null。
+        /// </param>
         public KeyItem(string name, T defaultValue, JsonSerializerContext? jsonSerializerContext = null)
         {
             Name = name;
@@ -39,6 +74,11 @@ public class WindowsAppSettingsService : IAppSettingsService
         }
 
         public string Name { get; }
+
+        /// <summary>
+        /// 存储设置项的值。替换该对象时，将自动触发保存。
+        /// 如果只是修改属性，必须手动调用 Save() 方法进行保存，否则不会触发保存。
+        /// </summary>
         public T Value
         {
             get => value;
@@ -137,8 +177,23 @@ public class WindowsAppSettingsService : IAppSettingsService
             typeof(T) == typeof(byte[]);
     }
 
+    /// <summary>
+    /// 用于在 Windows LocalSettings 中存储和读取配置项的键值对容器，并使用 Windows 平台提供的加密设置进行加密。
+    /// 接受直接存储基础类型，也接受支持 JSON 序列化的自定义类型。
+    /// 接受的基础类型：string
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SecureKeyItem<T> : IKeyItem<T> where T : notnull
     {
+        /// <summary>
+        /// 初始化 KeyItem 的新实例。
+        /// </summary>
+        /// <param name="name">存储时使用的键名，对应 LocalSettings 中的 Key。</param>
+        /// <param name="defaultValue">当设置不存在时使用的默认值。</param>
+        /// <param name="jsonSerializerContext">
+        /// 用于 JSON 序列化的上下文。对于自定义类型，必须传入对应的 JsonSerializerContext，否则运行时会抛出异常。
+        /// 对于 string 类型，可以传入 null。
+        /// </param>
         public SecureKeyItem(string name, T defaultValue, JsonSerializerContext? jsonSerializerContext = null)
         {
             Name = name;
@@ -148,6 +203,11 @@ public class WindowsAppSettingsService : IAppSettingsService
         }
 
         public string Name { get; }
+
+        /// <summary>
+        /// 存储设置项的值。替换该对象时，将自动触发保存。
+        /// 如果只是修改属性，必须手动调用 Save() 方法进行保存，否则不会触发保存。
+        /// </summary>
         public T Value
         {
             get => value;
@@ -172,7 +232,7 @@ public class WindowsAppSettingsService : IAppSettingsService
                 if (raw is null || raw is not string encryptedData)
                 {
                     Save(); // 保存默认值到存储
-                    throw new Exception($"无法读取存储的数据。期望得到 string，实际为{raw?.GetType()}");
+                    throw new Exception($"无法读取存储的数据。期望得到 string，实际为 {raw?.GetType().Name}");
                 }
 
                 var decrypted = Decrypt(encryptedData);
@@ -185,7 +245,7 @@ public class WindowsAppSettingsService : IAppSettingsService
 
                 if (context == null)
                 {
-                    throw new ArgumentNullException($"使用自定义类型{typeof(T).Name}时，必须提供 JSON Serialize Context，因为 AOT 模式不支持通过反射查看你的自定义类型。");
+                    throw new ArgumentNullException($"使用自定义类型 {typeof(T).Name} 时，必须提供 JSON Serialize Context。");
                 }
 
                 var deserialized = JsonSerializer.Deserialize(decrypted, typeof(T), context);
@@ -218,7 +278,7 @@ public class WindowsAppSettingsService : IAppSettingsService
                 {
                     if (context == null)
                     {
-                        throw new ArgumentNullException($"使用自定义类型{typeof(T).Name}时，必须提供 JSON Serialize Context，因为 AOT 模式不支持通过反射查看你的自定义类型。");
+                        throw new ArgumentNullException($"使用自定义类型 {typeof(T).Name} 时，必须提供 JSON Serialize Context。");
                     }
 
                     jsonData = JsonSerializer.Serialize(value, typeof(T), context);
@@ -229,8 +289,8 @@ public class WindowsAppSettingsService : IAppSettingsService
             }
             catch (JsonException jsonEx)
             {
-                Debug.WriteLine($"保存设置 '{Name}' 失败。检查是否为此类添加了 JSON 序列化注解？类型：{typeof(T)}，序列化错误信息: {jsonEx.Message}");
-                throw new InvalidOperationException($"保存设置 '{Name}' 失败，请检查序列化配置。", jsonEx);
+                Debug.WriteLine($"保存设置 '{Name}' 失败。检查是否为此类添加了 JSON 序列化支持？类型：{typeof(T)}，序列化错误信息: {jsonEx.Message}");
+                throw new InvalidOperationException($"保存设置 '{Name}' 失败，请检查序列化配置：", jsonEx);
             }
             catch (Exception ex)
             {
