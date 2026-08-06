@@ -18,13 +18,14 @@ public class MockCourseSelectService : ICourseSelectService
     private CourseResponse? selectableCourses = null;
     private List<CourseItem>? selectedCourses = null;
 
+    private CancellationTokenSource? cancellationTokenSource;
+
     public MockCourseSelectService(HttpClientProvider httpClientProvider, ILogger<MockCourseSelectService> logger)
     {
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
         SetSelectableCourses();
         SetSelectedCourses();
-        _ = SimulateSelectedCountChanged();
     }
 
     private void SetSelectableCourses()
@@ -46,40 +47,96 @@ public class MockCourseSelectService : ICourseSelectService
 
     public async Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(700, cancellationToken);
-        return selectableCourses;
+        try
+        {
+            await Task.Delay(700, cancellationToken);
+            return selectableCourses;
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("请求已终止。");
+            return null;
+        }
     }
 
     public async Task<List<CourseItem>?> GetSelectedCoursesAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(700, cancellationToken);
-        return selectedCourses;
+        try
+        {
+            await Task.Delay(700, cancellationToken);
+            return selectedCourses;
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("请求已终止。");
+            return null;
+        }
     }
 
-    private async Task SimulateSelectedCountChanged()
+    private async Task SimulateSelectedCountChanged(CancellationToken cancellationToken)
     {
-        while (true)
+        try
         {
-            bool completed = true;
-            await Task.Delay(1500);
-            foreach (var course in selectableCourses!.Rows)
+            while (true)
             {
-                if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
+                bool completed = true;
+                await Task.Delay(1500, cancellationToken);
+                foreach (var course in selectableCourses!.Rows)
                 {
-                    int count = int.Parse(course.SelectedStudentCount!);
-                    count++;
-                    course.SelectedStudentCount = count.ToString();
-                    completed = false;
+                    if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
+                    {
+                        int count = int.Parse(course.SelectedStudentCount!);
+                        count++;
+                        course.SelectedStudentCount = count.ToString();
+                        completed = false;
+                    }
                 }
+                if (completed)
+                    return;
             }
-            if (completed)
-                return;
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("请求已终止。");
         }
     }
 
     public async Task<int?> GetSelectLimitCountAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(1000, cancellationToken);
-        return 2;
+        try
+        {
+            await Task.Delay(1000, cancellationToken);
+            return 2;
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("请求已终止。");
+            return null;
+        }
+    }
+
+    public async Task BeginSyncCourses(CancellationToken cancellationToken)
+    {
+        ResetCts(ref cancellationTokenSource);
+        _ = SimulateSelectedCountChanged(cancellationTokenSource!.Token);
+    }
+
+    public async Task StopSyncCourses()
+    {
+        CancelCts(ref cancellationTokenSource);
+    }
+
+    private static void ResetCts(ref CancellationTokenSource? cts, CancellationTokenSource? ctsToUse = null)
+    {
+        cts?.Cancel();
+        cts?.Dispose();
+        cts = ctsToUse ?? new CancellationTokenSource();
+    }
+
+    private static void CancelCts(ref CancellationTokenSource? cts)
+    {
+        cts?.Cancel();
+        cts?.Dispose();
+        cts = null;
     }
 }

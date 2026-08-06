@@ -29,6 +29,9 @@ public partial class CourseSelectService : ICourseSelectService
     private CourseResponse? selectableCourses = null;
     private List<CourseItem>? selectedCourses = null;
 
+    private CancellationTokenSource? syncSelectableCoursesCts = null;
+    //private CancellationTokenSource? syncSelectedCoursesCts = null;
+
     public CourseSelectService(HttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger)
     {
         this.httpClientProvider = httpClientProvider;
@@ -38,7 +41,6 @@ public partial class CourseSelectService : ICourseSelectService
     public async Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         await RefreshSelectableCoursesAsync(cancellationToken);
-        _ = SyncSelectableCoursesAsync(cancellationToken);
         return selectableCourses;
     }
 
@@ -48,13 +50,57 @@ public partial class CourseSelectService : ICourseSelectService
         return selectedCourses;
     }
 
-    private async Task SyncSelectableCoursesAsync(CancellationToken cancellationToken)
+    //private async Task SyncSelectableCoursesAsync(CancellationTokenSource cts)
+    //{
+    //    try
+    //    {
+    //        while (!cts.IsCancellationRequested)
+    //        {
+    //            await Task.Delay(1500, cts.Token);
+    //            await RefreshSelectableCoursesAsync(cts.Token);
+    //        }
+    //    }
+    //    catch (OperationCanceledException)
+    //    {
+    //        logger.LogInformation("已停止课程列表自动更新");
+    //    }
+    //    finally
+    //    {
+    //        // 关键：任务彻底结束后，手动 Dispose 掉，防止内存泄漏！
+    //        cts.Dispose();
+    //    }
+    //}
+
+    public async Task BeginSyncCourses(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        if (syncSelectableCoursesCts is not null && !syncSelectableCoursesCts.IsCancellationRequested)
+            return;
+
+        ResetCts(ref syncSelectableCoursesCts);
+
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, syncSelectableCoursesCts!.Token);
+
+        try
         {
-            await Task.Delay(1500, cancellationToken);
-            await RefreshSelectableCoursesAsync(cancellationToken);
+            while (!cts.IsCancellationRequested)
+            {
+                await Task.Delay(1500, cts.Token);
+                await RefreshSelectableCoursesAsync(cts.Token);
+                await RefreshSelectedCoursesAsync(cts.Token);
+            }
         }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("已停止课程列表自动更新");
+        }
+    }
+
+    public async Task StopSyncCourses()
+    {
+        if (syncSelectableCoursesCts is null)
+            return;
+
+        CancelCts(ref syncSelectableCoursesCts);
     }
 
     private async Task RefreshSelectableCoursesAsync(CancellationToken cancellationToken)
@@ -67,9 +113,9 @@ public partial class CourseSelectService : ICourseSelectService
 
         try
         {
-            while (total == -1 || pageSize * (page - 1) <= total)
+            while (total == -1 || pageSize * (page - 1) < total)
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, GET_SELECTABLE_COURSES_URL);
+                using var request = new HttpRequestMessage(HttpMethod.Post, GET_SELECTABLE_COURSES_URL);
 
                 var formData = new Dictionary<string, string>
                 {
@@ -79,35 +125,29 @@ public partial class CourseSelectService : ICourseSelectService
                     { "order", "asc" }
                 };
 
-                var content = new FormUrlEncodedContent(formData);
+                using var content = new FormUrlEncodedContent(formData);
 
                 request.Content = content;
                 request.Headers.Referrer = new Uri(BASE_URL);
 
-                var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
-
-                logger.LogDebug("Response: {StatusCode}", response.StatusCode);
+                using var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    string d = await response.Content.ReadAsStringAsync();
-                    var courseResponse = await JsonSerializer.DeserializeAsync(await response.Content.ReadAsStreamAsync(cancellationToken), CourseResponseJsonContext.Default.CourseResponse, CancellationToken.None);
+                    await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                    var courseResponse = await JsonSerializer.DeserializeAsync(stream, CourseResponseJsonContext.Default.CourseResponse, cancellationToken);
 
                     if (courseResponse == null)
                     {
-                        logger.LogError("Could not deserialize raw data to type {typeof(CourseResponseJsonContext)}. Raw data: {response.Content}", typeof(CourseResponseJsonContext), response.Content.ReadAsStreamAsync(cancellationToken));
-                        selectableCourses = courses.Total == -1 ? null : courses;
+                        logger.LogError("Could not deserialize raw data to type {typeof(CourseResponseJsonContext)}. Raw data: {response.Content}", typeof(CourseResponseJsonContext), await response.Content.ReadAsStringAsync(cancellationToken));
+                        selectableCourses = total == -1 ? null : courses;
                         return;
                     }
 
-                    logger.LogDebug("Successfully request selectable courses.");
-
                     courses.Total = total = courseResponse.Total;
+                    courses.Rows.AddRange(courseResponse.Rows);
 
-                    foreach (var item in courseResponse.Rows)
-                    {
-                        courses.Rows.Add(item);
-                    }
+                    logger.LogInformation("Successfully get selectable courses.. Current response count is: {count2}. Current total count is: {count3}", courseResponse.Rows.Count, courses.Total);
 
                     page++;
                     continue;
@@ -123,9 +163,14 @@ public partial class CourseSelectService : ICourseSelectService
 
             selectableCourses = courses;
         }
+        catch (OperationCanceledException)
+        {
+            // 捕获取消异常：这是正常的操作终止，不需要 LogError，直接让它优雅退出
+            logger.LogInformation("RefreshSelectableCoursesAsync was canceled.");
+        }
         catch (Exception ex)
         {
-            logger.LogError("{Message}", ex.Message);
+            logger.LogError(ex, "{Message}", ex.Message);
             return;
         }
     }
@@ -134,7 +179,7 @@ public partial class CourseSelectService : ICourseSelectService
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, GET_SELECTED_COURSES_URL);
+            using var request = new HttpRequestMessage(HttpMethod.Post, GET_SELECTED_COURSES_URL);
 
             var formData = new Dictionary<string, string>
             {
@@ -142,27 +187,34 @@ public partial class CourseSelectService : ICourseSelectService
                 { "order", "asc" },
             };
 
-            var content = new FormUrlEncodedContent(formData);
-
+            using var content = new FormUrlEncodedContent(formData);
             request.Content = content;
             request.Headers.Referrer = new Uri(BASE_URL);
 
-            var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
+            using var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                logger.LogDebug("Successfully request selected courses.");
-                selectedCourses = await JsonSerializer.DeserializeAsync(await response.Content.ReadAsStreamAsync(cancellationToken), CourseItemListJsonContext.Default.ListCourseItem, CancellationToken.None);
-                return;
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                selectedCourses = await JsonSerializer.DeserializeAsync(stream, CourseItemListJsonContext.Default.ListCourseItem, cancellationToken);
+
+                if (selectedCourses == null)
+                {
+                    logger.LogError("Could not deserialize raw data to type {Type}. Raw data: {response.Content}", typeof(List<CourseItem>), await response.Content.ReadAsStringAsync(cancellationToken));
+                    return;
+                }
+
+                logger.LogInformation("Successfully request selected courses. Courses count: {Count}", selectedCourses.Count);
             }
-
-            logger.LogDebug("Request returned a failure. Raw data: {response.Content}", await response.Content.ReadAsStringAsync(cancellationToken));
-
-            return;
+        }
+        catch (OperationCanceledException)
+        {
+            // 捕获取消异常：这是正常的操作终止，不需要 LogError，直接让它优雅退出
+            logger.LogInformation("RefreshSelectedCoursesAsync was canceled.");
         }
         catch (Exception ex)
         {
-            logger.LogDebug("{Message}", ex.Message);
+            logger.LogError(ex, "{Message}", ex.Message);
             return;
         }
     }
@@ -266,7 +318,7 @@ public partial class CourseSelectService : ICourseSelectService
 
                 var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
 
-                logger.LogDebug("Response: {response.StatusCode}", response.StatusCode);
+                //logger.LogDebug("Response: {response.StatusCode}", response.StatusCode);
 
                 // 你妈傻逼选课失败还返回200，我操你妈还要我自己判断
 
@@ -356,4 +408,18 @@ public partial class CourseSelectService : ICourseSelectService
 
     [GeneratedRegex(@"限选(?:&nbsp;|\s)*(\d+)")]
     private static partial Regex SelectLimitCountRegex();
+
+    private static void ResetCts(ref CancellationTokenSource? cts, CancellationTokenSource? ctsToUse = null)
+    {
+        cts?.Cancel();
+        cts?.Dispose();
+        cts = ctsToUse ?? new CancellationTokenSource();
+    }
+
+    private static void CancelCts(ref CancellationTokenSource? cts)
+    {
+        cts?.Cancel();
+        cts?.Dispose();
+        cts = null;
+    }
 }
