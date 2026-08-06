@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -32,9 +33,16 @@ public partial class AccountInfoJsonContext : JsonSerializerContext
 
 }
 
+[JsonSerializable(typeof(ObservableCollection<SelectSchedule>))]
+public partial class SelectScheduleListContext : JsonSerializerContext
+{
+
+}
+
 [JsonSerializable(typeof(CourseItem))]
 [JsonSerializable(typeof(List<CourseItem>))]
 [JsonSerializable(typeof(Dictionary<string, object>))]
+[JsonSerializable(typeof(ObservableCollection<SelectSchedule>))]
 public partial class AppJsonContext : JsonSerializerContext
 {
 

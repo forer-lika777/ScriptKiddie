@@ -1,11 +1,15 @@
 ﻿using ScriptKiddie.WinUI.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI;
 
+// Account management
+
 public record AccountInfoChangedMessage(AccountInfo value);
+
 public record LoginSuccessMessage();
+
+public record AutoLoginFailedNeedCaptchaMessage();
+
+// Select schedules management
+
+public record SelectScheduleChangedMessage();

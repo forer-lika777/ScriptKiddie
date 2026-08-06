@@ -30,7 +30,9 @@
     <None Remove="MainPage.xaml" />
     <None Remove="Pages\AccontManagePage.xaml" />
     <None Remove="Pages\Controls\CourseInfoPanel.xaml" />
+    <None Remove="Pages\Controls\SelectScheduleEditPanel.xaml" />
     <None Remove="Pages\LoginPage.xaml" />
+    <None Remove="Pages\SelectSchedulePage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -101,6 +103,12 @@
     <None Update="Mocks\Data\SelectableCoursesData.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="Pages\Controls\SelectScheduleEditPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Pages\SelectSchedulePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Pages\Controls\CourseInfoPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

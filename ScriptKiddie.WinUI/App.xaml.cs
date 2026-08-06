@@ -70,7 +70,8 @@ public partial class App : Application
         services.AddSingleton<MainWindowModel>();
         services.AddTransient<LoginPageModel>();
         services.AddSingleton<AccountManagePageModel>();
-        services.AddSingleton<SettingPageModel>();
+        services.AddTransient<SettingPageModel>();
+        services.AddTransient<SelectSchedulePageModel>();
     }
 
     private static void AddServices(ServiceCollection services)
@@ -83,6 +84,9 @@ public partial class App : Application
         services.AddSingleton<AccountManageService>();
 
         services.AddSingleton<HttpClientProvider>();
+        services.AddSingleton<SelectScheduleProvider>();
+
+        services.AddSingleton<NavigationService>();
     }
 
     private static void AddViews(ServiceCollection services)

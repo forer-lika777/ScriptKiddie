@@ -75,6 +75,7 @@ public partial class LoginPageModel : ObservableObject
                 captchaBeenValid = true;
                 return new ValidationErrorStatus();
             }
+
             return captchaBeenValid ? new ValidationErrorStatus("验证码不能为空") : new ValidationErrorStatus();
         }
     }
@@ -126,21 +127,5 @@ public partial class LoginPageModel : ObservableObject
         captchaBeenValid = false;
         Captcha = "";
         CaptchaImage = new Uri(accountManageService.GetRandomCaptchaImage());
-    }
-
-    /// <summary>表示单个属性的校验结果状态。</summary>
-    public partial class ValidationErrorStatus : ObservableObject
-    {
-        public ValidationErrorStatus(string? message = null)
-        {
-            Message = message ?? string.Empty;
-            Success = string.IsNullOrWhiteSpace(message);
-        }
-
-        [ObservableProperty]
-        public partial string Message { get; set; } = string.Empty;
-
-        [ObservableProperty]
-        public partial bool Success { get; private set; }
     }
 }

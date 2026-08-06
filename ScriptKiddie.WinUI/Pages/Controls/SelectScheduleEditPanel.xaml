@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ScriptKiddie.WinUI.Pages.Controls.SelectScheduleEditPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ScriptKiddie.WinUI.Pages.Controls"
+    xmlns:models="using:ScriptKiddie.WinUI.Models"
+    xmlns:converters="using:ScriptKiddie.WinUI.Utils.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:SelectTypeToIndexConverter x:Key="SelectTypeToIndexConverter"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Rectangle Fill="#90000000"/>
+        <Grid Margin="100" MaxWidth="700">
+            <Rectangle Fill="{StaticResource SolidBackgroundFillColorBaseBrush}"
+                       RadiusX="10" RadiusY="10"/>
+            <ScrollView Padding="40, 40, 40, 70">
+                <StackPanel Spacing="40">
+                    <TextBox Header="名称" Text="{x:Bind ViewModel.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <DatePicker Date="{x:Bind ViewModel.Date, Mode=TwoWay}" Header="日期"/>
+                    <StackPanel Orientation="Horizontal" Spacing="20">
+                        <TimePicker Time="{x:Bind ViewModel.StartTimeTime, Mode=TwoWay}" Header="起始时间" ClockIdentifier="24HourClock"/>
+                        <TimePicker Time="{x:Bind ViewModel.EndTimeTime, Mode=TwoWay}" Header="结束时间" ClockIdentifier="24HourClock"/>
+                    </StackPanel>
+                    <ComboBox Header="类型"
+                              SelectedIndex="{x:Bind ViewModel.SelectType, Mode=TwoWay, Converter={StaticResource SelectTypeToIndexConverter}}">
+                        <x:String>选课与退选</x:String>
+                        <x:String>仅选课</x:String>
+                        <x:String>仅退选</x:String>
+                    </ComboBox>
+                    <TextBlock Text="{x:Bind ViewModel.Message, Mode=OneWay}"/>
+                </StackPanel>
+            </ScrollView>
+            <Grid VerticalAlignment="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="确定" HorizontalAlignment="Stretch" Margin="30, 0, 12, 25"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Command="{x:Bind ViewModel.ModifyCommand}"/>
+                <Button Grid.Column="1" Content="取消" HorizontalAlignment="Stretch" Margin="12, 0, 30, 25"
+                        Command="{x:Bind ViewModel.CancelCommand}"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

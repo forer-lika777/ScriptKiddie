@@ -8,10 +8,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <NavigationView x:Name="navigationView"
+    <NavigationView x:Name="NavigationView"
                     IsSettingsVisible="True"
                     PaneDisplayMode="LeftCompact"
-                    ItemInvoked="navigationView_ItemInvoked">
+                    ItemInvoked="navigationView_ItemInvoked"
+                    IsBackEnabled="True"
+                    BackRequested="NavigationView_BackRequested">
         <NavigationView.MenuItems>
             <NavigationViewItem Content="开始"
                                 Icon="Home"
@@ -27,7 +29,7 @@
                                 Tag="showacase" />
         </NavigationView.MenuItems>
         <NavigationView.Content>
-            <Frame x:Name="mainFrame" />
+            <Frame x:Name="MainFrame"/>
         </NavigationView.Content>
     </NavigationView>
 </Page>

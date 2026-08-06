@@ -6,6 +6,7 @@
     xmlns:local="using:ScriptKiddie.WinUI.Pages"
     xmlns:models="using:ScriptKiddie.WinUI.Models"
     xmlns:converters="using:ScriptKiddie.WinUI.Utils.Converters"
+    xmlns:viewmodels="using:ScriptKiddie.WinUI.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -13,24 +14,35 @@
         <converters:IsFullStatusToColorConverter x:Key="IsFullStatusToColorConverter"/>
         <converters:IsFullStatusToStringConverter x:Key="IsFullStatusToStringConverter"/>
     </Page.Resources>
-    <Grid>
+    <Grid x:Name="RootGrid">
         <ProgressBar 
             VerticalAlignment="Top" Margin="20, 0, 20, 0"
             IsIndeterminate="True" ShowError="{x:Bind ViewModel.LoadingFailed, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
         <ScrollView Padding="20, 0">
             <StackPanel Margin="0, 5, 0, 0">
                 <StackPanel Padding="16" Spacing="10">
-                    <TextBlock Text="选课列表" FontSize="30" Margin="0, 10" 
-                               ToolTipService.ToolTip="脚本小子的私密空间"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="选课列表" FontSize="30" Margin="0, 10" 
+                                   ToolTipService.ToolTip="脚本小子的私密空间"/>
+                        <Button x:Name="ConfigureSelectScheduleButton" Content="配置选课任务时间表" Margin="20, 0" VerticalAlignment="Center"
+                                Click="ConfigureSelectScheduleButton_Click"/>
+                    </StackPanel>
+                    <InfoBar IsOpen="{x:Bind ViewModel.HasCourseSelectSchedule, Converter={StaticResource InverseBoolConverter}}"
+                             Severity="Warning" Title="提示" Message="在添加课程之前，你需要先设置一个选课任务时间表"
+                             IsClosable="False">
+                        <InfoBar.ActionButton>
+                            <Button Content="前往设置" HorizontalAlignment="Right" Click="ConfigureSelectScheduleButton_Click"/>
+                        </InfoBar.ActionButton>
+                    </InfoBar>
                     <StackPanel Orientation="Horizontal" 
                                 ToolTipService.ToolTip="解析自网站的网页结构（仅刷新一次）">
-                        <TextBlock Text="限选"/>
+                        <TextBlock Text="限选数量："/>
                         <TextBlock Text="{x:Bind ViewModel.SelectLimitCount, Mode=OneWay}"/>
                     </StackPanel>
                     <CheckBox Content="启用自动刷新" IsChecked="{x:Bind ViewModel.AutoRefresh, Mode=TwoWay}"
                               ToolTipService.ToolTip="启用后，将每隔 1.5 秒自动从网站获取最新的课程数据"/>
                 </StackPanel>
-                
+
                 <ListView ItemsSource="{x:Bind ViewModel.SelectableCourses, Mode=OneWay}" Height="500">
                     <ListView.Header>
                         <Grid ColumnSpacing="16" Padding="15, 5">
@@ -72,7 +84,7 @@
                                     <ColumnDefinition Width="170" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                                           Text="{x:Bind CourseName}" ToolTipService.ToolTip="{x:Bind CourseName}"/>
+                                           Text="{x:Bind }" ToolTipService.ToolTip="{x:Bind CourseName}"/>
                                 <TextBlock Grid.Column="1" VerticalAlignment="Center"
                                            Text="{x:Bind ActivityDescription}" ToolTipService.ToolTip="{x:Bind ActivityDescription}"/>
                                 <TextBlock Grid.Column="2" VerticalAlignment="Center"
@@ -85,11 +97,12 @@
                                            Text="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}"
                                            ToolTipService.ToolTip="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}"
                                            Foreground="{x:Bind IsFull, Converter={StaticResource IsFullStatusToColorConverter}, Mode=OneWay}"/>
-                                <StackPanel 
+                                <StackPanel
                                     Grid.Column="9" Orientation="Horizontal" Spacing="10"
                                     Padding="0, 7, 0, 7">
                                     <Button x:Name="ViewMoreButton" VerticalAlignment="Stretch" Content="详细信息" Click="ViewMoreButton_Click"/>
-                                    <Button VerticalAlignment="Stretch" Content="添加课程"/>
+                                    <Button VerticalAlignment="Stretch" Content="添加课程" 
+                                            IsEnabled="{x:Bind local:CourseListPage.ViewModelCache.HasCourseSelectSchedule, Mode=OneWay}"/>
                                 </StackPanel>
                             </Grid>
                         </DataTemplate>
