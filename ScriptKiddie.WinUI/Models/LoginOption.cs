@@ -13,5 +13,5 @@ public class LoginOption
     public bool RememberMe { get; set; } = true;
     public bool LoadCookie { get; set; } = true;
     public bool ExportCookie { get; set; } = false;
-    public CookieCollection CookieContent { get; set; } = [];
+    public CookieCollection? CookieContent { get; set; } = null;
 }

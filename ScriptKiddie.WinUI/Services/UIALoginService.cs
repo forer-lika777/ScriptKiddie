@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Services;
@@ -42,7 +43,7 @@ public class UIALoginService : ILoginService
         random = new Random();
     }
 
-    public async Task<bool> LogoutAsync()
+    public async Task<bool> LogoutAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -51,7 +52,7 @@ public class UIALoginService : ILoginService
             var request = new HttpRequestMessage(HttpMethod.Get, LOG_OUT_URL);
             request.Headers.Referrer = new Uri(MAIN_PAGE_URL);
 
-            var response = await httpClientProvider.GetCurrentClient().SendAsync(request);
+            var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -70,26 +71,29 @@ public class UIALoginService : ILoginService
         }
     }
 
-    public async Task<LoginResult> LoginAsync(LoginOption loginOption)
+    public async Task<LoginResult> LoginAsync(LoginOption loginOption, CancellationToken cancellationToken)
     {
         try
         {
-            logger.LogInformation(AccountServiceStr.BeginLoggingIn);
+            logger.LogInformation("开始执行登录操作。");
 
             if (loginOption.LoadCookie)
             {
                 httpClientProvider.SetCookies(loginOption.CookieContent);
             }
 
-            var response = await httpClientProvider.GetCurrentClient().GetAsync(BASE_URL);
-            string? responseurl = response.RequestMessage?.RequestUri?.ToString() ?? string.Empty;
+            using var initialResponse = await httpClientProvider.GetCurrentClient().GetAsync(BASE_URL, cancellationToken);
+            string initialResponseUrl = initialResponse.RequestMessage?.RequestUri?.ToString() ?? string.Empty;
 
-            if (responseurl == MAIN_PAGE_URL)
+            if (initialResponseUrl == MAIN_PAGE_URL)
             {
                 logger.LogInformation("您有一个有效会话，无需登录。");
-                return await BuildLoginResult(loginOption, response.StatusCode);
+                return await BuildLoginResult(loginOption, initialResponse.StatusCode, cancellationToken);
             }
-            else if (responseurl == CAPTCHA_PAGE_URL)
+
+            string loginPageHtml;
+
+            if (initialResponseUrl == CAPTCHA_PAGE_URL)
             {
                 if (string.IsNullOrWhiteSpace(loginOption.Captcha))
                 {
@@ -99,10 +103,14 @@ public class UIALoginService : ILoginService
                         NeedCaptcha = true,
                     };
                 }
-                var request = new HttpRequestMessage(HttpMethod.Get, $"{CAPTCHA_PAGE_URL}?captcha={loginOption.Captcha}");
-                request.Headers.Referrer = new Uri(CAPTCHA_PAGE_URL);
-                var captchaResponse = await httpClientProvider.GetCurrentClient().SendAsync(request);
-                if (!captchaResponse.IsSuccessStatusCode)
+
+                using var captchaRequest = new HttpRequestMessage(HttpMethod.Get, $"{CAPTCHA_PAGE_URL}?captcha={loginOption.Captcha}");
+                captchaRequest.Headers.Referrer = new Uri(CAPTCHA_PAGE_URL);
+
+                using var captchaResponse = await httpClientProvider.GetCurrentClient().SendAsync(captchaRequest, cancellationToken);
+                string captchaResponseUrl = captchaResponse.RequestMessage?.RequestUri?.ToString() ?? string.Empty;
+
+                if (captchaResponseUrl.Contains(CAPTCHA_PAGE_URL))
                 {
                     return new LoginResult
                     {
@@ -111,60 +119,103 @@ public class UIALoginService : ILoginService
                         Message = "验证码错误",
                     };
                 }
+
+                loginPageHtml = await captchaResponse.Content.ReadAsStringAsync(cancellationToken);
             }
-            else if (!responseurl.Contains(UIA_LOGIN_URL))
+            else if (!initialResponseUrl.Contains(UIA_LOGIN_URL))
             {
-                throw new Exception($"当前页面被重定向到了其他页面：{responseurl}");
+                logger.LogError("当前页面被重定向到了非预期页面：{ResponseUrl}", initialResponseUrl);
+                return new LoginResult
+                {
+                    Success = false,
+                    Message = $"当前页面被重定向到了其他页面：{initialResponseUrl}"
+                };
+            }
+            else
+            {
+                loginPageHtml = await initialResponse.Content.ReadAsStringAsync(cancellationToken);
             }
 
             if (loginOption.LoadCookie)
             {
-                logger.LogWarning(AccountServiceStr.UIA_LoadCookieLoginFailedWarning);
+                logger.LogWarning("警告：使用了 Cookie 加载，但并未返回已登录状态。");
             }
 
             if (string.IsNullOrEmpty(loginOption.UserName) || string.IsNullOrEmpty(loginOption.Password))
             {
-                throw new Exception("用户名或密码为空。取消登录。");
+                logger.LogError("用户名或密码为空，取消登录。");
+                return new LoginResult
+                {
+                    Success = false,
+                    Message = "用户名或密码为空。"
+                };
             }
 
-            string html = await response.Content.ReadAsStringAsync();
+            using var content = BuildLoginData(loginPageHtml, loginOption);
 
-            var content = BuildLoginData(html, loginOption);
+            logger.LogDebug("开始发送 Post 请求。");
 
-            logger.LogDebug(AccountServiceStr.SendPost);
+            using var loginResponse = await httpClientProvider.GetCurrentClient().PostAsync(UIA_LOGIN_URL, content, cancellationToken);
+            string loginResponseUrl = loginResponse.RequestMessage?.RequestUri?.ToString() ?? string.Empty;
 
-            response = await httpClientProvider.GetCurrentClient().PostAsync(UIA_LOGIN_URL, content);
-
-            if (response.RequestMessage?.RequestUri?.ToString() == MAIN_PAGE_URL)
+            if (loginResponseUrl == MAIN_PAGE_URL)
             {
                 logger.LogInformation("登录成功。");
-                return await BuildLoginResult(loginOption, response.StatusCode);
+                return await BuildLoginResult(loginOption, loginResponse.StatusCode, cancellationToken);
             }
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            if (loginResponse.StatusCode == HttpStatusCode.Unauthorized)
             {
-                logger.LogError(AccountServiceStr.UIA_WrongUsernameOrPasswordMessage);
-                logger.LogError("{TypeCode} {StatusCode}", (int)response.StatusCode, response.StatusCode);
-                if (loginOption.UserName.Length == 10)
+                logger.LogError("{TypeCode} {StatusCode}", (int)loginResponse.StatusCode, loginResponse.StatusCode);
+                logger.LogError("用户名或密码错误。登录失败。");
+
+                string errorMessage = loginOption.UserName.Length == 10
+                    ? "您提供的用户名或密码有误或账号未激活(首次登录要先激活账号)。"
+                    : "该账号非常用账号或用户名密码有误";
+
+                return new LoginResult
                 {
-                    throw new Exception(AccountServiceStr.UIA_UsernameOrPasswordIncorrect);
-                }
-                else
-                {
-                    throw new Exception(AccountServiceStr.UIA_UsernameNotValidError);
-                }
+                    Success = false,
+                    Message = errorMessage,
+                    StatusCode = loginResponse.StatusCode
+                };
             }
 
             return new LoginResult
             {
                 Success = false,
                 Message = AccountServiceStr.LoginFailedForUnknownReason,
-                StatusCode = response.StatusCode
+                StatusCode = loginResponse.StatusCode
+            };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // 用户主动取消令牌，直接抛出让外层感知，或返回 OperationCanceled 的状态
+            logger.LogInformation("登录操作已被主动取消。");
+            throw;
+        }
+        catch (OperationCanceledException ex)
+        {
+            // 外部 CancellationToken 未取消，说明是 HttpClient 内部 Timeout 引起的取消
+            logger.LogError(ex, "连接目标服务器超时。");
+            return new LoginResult
+            {
+                Success = false,
+                Message = "连接目标服务器超时，请重试。"
+            };
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "无法连接到目标服务器，网络异常。");
+            return new LoginResult
+            {
+                Success = false,
+                Message = ex.Message
             };
         }
         catch (Exception ex)
         {
-            logger.LogError("{Message}", ex.Message);
+            logger.LogError(ex, "登录异常：{Message}", ex.Message);
             return new LoginResult
             {
                 Success = false,
@@ -173,16 +224,16 @@ public class UIALoginService : ILoginService
         }
     }
 
-    private async Task<LoginResult> BuildLoginResult(LoginOption loginOption, HttpStatusCode statusCode)
+    private async Task<LoginResult> BuildLoginResult(LoginOption loginOption, HttpStatusCode statusCode, CancellationToken cancellationToken)
     {
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Get, GET_ACCOUNT_INFO_URL);
             request.Headers.Referrer = new Uri(GET_ACCOUNT_INFO_REFERRER);
 
-            var response = await httpClientProvider.GetCurrentClient().SendAsync(request);
+            var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
 
-            string html = await response.Content.ReadAsStringAsync();
+            string html = await response.Content.ReadAsStringAsync(cancellationToken);
             var document = new HtmlDocument();
             document.LoadHtml(html);
 
@@ -268,7 +319,7 @@ public class UIALoginService : ILoginService
 
     private FormUrlEncodedContent BuildLoginData(string html, LoginOption loginOption)
     {
-        logger.LogDebug(AccountServiceStr.UIA_BuildLoginData);
+        logger.LogDebug("开始构建登录数据。");
         string execution = ExtractValue(html, "name=\"execution\" value=\"");
         string encryptSalt = ExtractValue(html, "id=\"pwdEncryptSalt\" value=\"");
         if (string.IsNullOrWhiteSpace(execution) || string.IsNullOrWhiteSpace(encryptSalt))
@@ -297,7 +348,7 @@ public class UIALoginService : ILoginService
         if (loginOption.RememberMe)
         {
             formList.Insert(3, new KeyValuePair<string, string>("rememberMe", "true"));
-            logger.LogDebug(AccountServiceStr.UIA_EnableRememberMe);
+            logger.LogDebug("已开启七天免登录选项。");
         }
 
         return new FormUrlEncodedContent(formList);
@@ -316,7 +367,7 @@ public class UIALoginService : ILoginService
         }
         catch (Exception ex)
         {
-            logger.LogError(AccountServiceStr.UIA_ExtractValueFailed, ex.Message);
+            logger.LogError("提取字段失败。{Message}", ex.Message);
             return "";
         }
     }
