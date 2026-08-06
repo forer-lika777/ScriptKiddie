@@ -1,12 +1,6 @@
-﻿using Microsoft.UI.Xaml.Documents;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Services;
 
@@ -18,7 +12,7 @@ public class HttpClientProvider
     private readonly ReaderWriterLockSlim rwLock = new();
     private HttpClient? httpClient;
     private HttpClientHandler? httpClientHandler;
-    
+
     public HttpClientProvider()
     {
         CreateInstance();
@@ -40,8 +34,11 @@ public class HttpClientProvider
             };
 
             httpClient = new HttpClient(httpClientHandler);
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-            
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0");
+            httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+            httpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("zh-CN,zh;q=0.9,en;q=0.8");
+            httpClient.DefaultRequestHeaders.Connection.Add("keep-alive");
+
             if (cookies != null)
             {
                 httpClientHandler.CookieContainer.Add(cookies);
