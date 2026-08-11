@@ -15,14 +15,13 @@
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:SelectSchedule">
                     <StackPanel Padding="15" Spacing="5">
-                        <TextBlock Text="{x:Bind Name}" FontSize="20"/>
-                        <StackPanel Orientation="Horizontal" Spacing="2">
-                            <TextBlock Text="{x:Bind ScheduleTime.StartTime.ToShortDateString(), Mode=OneWay}" Margin="0, 0, 10, 0" Foreground="LightGray"/>
-                            <TextBlock Text="{x:Bind ScheduleTime.StartTime.ToShortTimeString(), Mode=OneWay}" Foreground="LightGray"/>
+                        <TextBlock Text="{x:Bind Name, Mode=OneWay}" FontSize="20"/>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="{x:Bind ScheduleTime.StartTime.ToString(), Mode=OneWay}" Foreground="LightGray"/>
                             <TextBlock Text="~" Foreground="LightGray"/>
-                            <TextBlock Text="{x:Bind ScheduleTime.EndTime.ToShortTimeString(), Mode=OneWay}" Foreground="LightGray"/>
+                            <TextBlock Text="{x:Bind ScheduleTime.EndTime.ToString(), Mode=OneWay}" Foreground="LightGray"/>
                         </StackPanel>
-                        <TextBlock Text="{x:Bind local:SelectSchedulePage.SelectTypeToString(SelectType)}"/>
+                        <TextBlock Text="{x:Bind local:SelectSchedulePage.SelectTypeToString(SelectType), Mode=OneWay}"/>
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

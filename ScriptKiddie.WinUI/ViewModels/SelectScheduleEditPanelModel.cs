@@ -19,42 +19,51 @@ public partial class SelectScheduleEditPanelModel : ObservableObject
 
     private readonly SelectSchedule? selectSchedule = null;
 
-
     public SelectScheduleEditPanelModel()
     {
         isEdit = false;
-        var now = DateTime.Now;
-        Date = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-        StartTimeTime = new TimeSpan(now.TimeOfDay.Hours, 0, 0);
-        EndTimeTime = StartTimeTime + new TimeSpan(1, 0, 0);
 
+        Name = "未命名时间表";
         SelectType = SelectType.SelectAndWithdraw;
+
+        var now = DateTime.Now;
+        EndTimeDate = StartTimeDate = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+
+        StartTimeTime = new TimeSpan(12, 0, 0);
+        EndTimeTime = StartTimeTime + new TimeSpan(6, 0, 0);
     }
 
     public SelectScheduleEditPanelModel(SelectSchedule selectSchedule)
     {
+        isEdit = true;
         initialName = Name = selectSchedule.Name;
+        initialSelectType = SelectType = selectSchedule.SelectType;
+
         initialStartTime = StartTime = selectSchedule.ScheduleTime.StartTime;
         initialEndTime = EndTime = selectSchedule.ScheduleTime.EndTime;
-        initialSelectType = SelectType = selectSchedule.SelectType;
+
+        StartTimeDate = initialStartTime.Value;
         StartTimeTime = initialStartTime.Value.TimeOfDay;
+        EndTimeDate = initialEndTime.Value;
         EndTimeTime = initialEndTime.Value.TimeOfDay;
-        Date = initialStartTime.Value;
+
         this.selectSchedule = selectSchedule;
-        isEdit = true;
     }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(NameErrorMessage))]
     [NotifyCanExecuteChangedFor(nameof(ModifyCommand))]
-    public partial string Name { get; set; } = "未命名时间表";
+    public partial string Name { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ModifyCommand))]
     public partial SelectType SelectType { get; set; }
 
     [ObservableProperty]
-    public partial DateTimeOffset Date { get; set; }
+    public partial DateTimeOffset StartTimeDate { get; set; }
+
+    [ObservableProperty]
+    public partial DateTimeOffset EndTimeDate { get; set; }
 
     [ObservableProperty]
     public partial TimeSpan StartTimeTime { get; set; }
@@ -105,34 +114,36 @@ public partial class SelectScheduleEditPanelModel : ObservableObject
     {
         get
         {
-            if (EndTime < StartTime)
+            if (EndTime <= StartTime)
             {
-                Message = "结束时间需要大于起始时间";
-                return new ValidationErrorStatus("结束时间需要大于起始时间");
+                Message = "结束时间需要在起始时间之后";
+                return new ValidationErrorStatus("结束时间需要在起始时间之后");
             }
 
             return new ValidationErrorStatus();
         }
     }
 
-    // 当 StartTimeDate 变化时，重新合并 StartTime
-    partial void OnDateChanged(DateTimeOffset value)
+    partial void OnStartTimeDateChanged(DateTimeOffset value)
     {
-        StartTime = value.DateTime.Date + StartTimeTime;
-        EndTime = value.DateTime.Date + EndTimeTime;
-        //OnPropertyChanged(nameof(Modify));
+        StartTime = value.Date + StartTimeTime;
+    }
+
+    partial void OnEndTimeDateChanged(DateTimeOffset value)
+    {
+        EndTime = value.Date + EndTimeTime;
     }
 
     // 当 StartTimeTime 变化时，重新合并 StartTime
     partial void OnStartTimeTimeChanged(TimeSpan value)
     {
-        StartTime = Date.DateTime.Date + value;
+        StartTime = StartTimeDate.DateTime.Date + value;
     }
 
     // 当 EndTimeTime 变化时，重新合并 EndTime
     partial void OnEndTimeTimeChanged(TimeSpan value)
     {
-        EndTime = Date.DateTime.Date + value;
+        EndTime = EndTimeDate.DateTime.Date + value;
     }
 
     public event EventHandler? CloseRequested;
@@ -169,10 +180,11 @@ public partial class SelectScheduleEditPanelModel : ObservableObject
             selectSchedule?.SelectType = SelectType;
             selectSchedule?.ScheduleTime.StartTime = StartTime;
             selectSchedule?.ScheduleTime.EndTime = EndTime;
+            selectScheduleProvider.Update();
         }
         else
         {
-            var schedule = new SelectSchedule([], new ScheduleTime(StartTime, EndTime), SelectType, Name);
+            var schedule = new SelectSchedule(new ScheduleTime(StartTime, EndTime), Name, SelectType);
             selectScheduleProvider.Add(schedule);
         }
         RequestClose();

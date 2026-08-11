@@ -16,16 +16,20 @@
 
     <Grid>
         <Rectangle Fill="#90000000"/>
-        <Grid Margin="100" MaxWidth="700">
+        <Grid Margin="50" MaxWidth="700" MaxHeight="650">
             <Rectangle Fill="{StaticResource SolidBackgroundFillColorBaseBrush}"
                        RadiusX="10" RadiusY="10"/>
-            <ScrollView Padding="40, 40, 40, 70">
-                <StackPanel Spacing="40">
+            <ScrollView Padding="40, 0, 40, 70">
+                <StackPanel Spacing="20" Margin="0, 30, 0, 0">
+                    <TextBlock Text="添加/编辑时间表" FontSize="25"/>
                     <TextBox Header="名称" Text="{x:Bind ViewModel.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                    <DatePicker Date="{x:Bind ViewModel.Date, Mode=TwoWay}" Header="日期"/>
-                    <StackPanel Orientation="Horizontal" Spacing="20">
-                        <TimePicker Time="{x:Bind ViewModel.StartTimeTime, Mode=TwoWay}" Header="起始时间" ClockIdentifier="24HourClock"/>
-                        <TimePicker Time="{x:Bind ViewModel.EndTimeTime, Mode=TwoWay}" Header="结束时间" ClockIdentifier="24HourClock"/>
+                    <StackPanel Orientation="Horizontal" Spacing="25">
+                        <CalendarDatePicker Date="{x:Bind ViewModel.StartTimeDate, Mode=TwoWay}" Header="起始日期" PlaceholderText="选择日期" DateFormat="{}{year.full}/{month.integer}/{day.integer}"/>
+                        <TimePicker Time="{x:Bind ViewModel.StartTimeTime, Mode=TwoWay}" ClockIdentifier="24HourClock" VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="25">
+                        <CalendarDatePicker Date="{x:Bind ViewModel.EndTimeDate, Mode=TwoWay}" Header="结束时间" PlaceholderText="选择日期" DateFormat="{}{year.full}/{month.integer}/{day.integer}"/>
+                        <TimePicker Time="{x:Bind ViewModel.EndTimeTime, Mode=TwoWay}" ClockIdentifier="24HourClock" VerticalAlignment="Bottom"/>
                     </StackPanel>
                     <ComboBox Header="类型"
                               SelectedIndex="{x:Bind ViewModel.SelectType, Mode=TwoWay, Converter={StaticResource SelectTypeToIndexConverter}}">
