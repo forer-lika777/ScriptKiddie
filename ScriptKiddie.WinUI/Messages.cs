@@ -10,6 +10,8 @@ public record LoginSuccessMessage();
 
 public record AutoLoginFailedNeedCaptchaMessage();
 
+public record NeedCaptchaMessage();
+
 // Select schedules management
 
 public record SelectScheduleChangedMessage();

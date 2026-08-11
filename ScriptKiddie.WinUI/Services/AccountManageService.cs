@@ -239,10 +239,10 @@ public partial class AccountManageService
         cts = ctsToUse ?? new CancellationTokenSource();
     }
 
-    public void AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)
-    {
-        _ = courseSelectService.AddCourseSelectPlan(course, openTime, cancellationToken);
-    }
+    //public void AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)
+    //{
+    //    _ = courseSelectService.AddCourseSelectPlan(course, openTime, cancellationToken);
+    //}
 
     public string GetCaptchaImage()
     {

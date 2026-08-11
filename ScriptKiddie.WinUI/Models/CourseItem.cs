@@ -18,6 +18,19 @@ public class CourseResponse
 
 public partial class CourseItem : ObservableObject
 {
+    [JsonConstructor]
+    public CourseItem()
+    {
+
+    }
+
+    public CourseItem(string courseTaskCode, string courseName, string teachingClassCode)
+    {
+        CourseTaskCode = courseTaskCode;
+        CourseName = courseName;
+        TeachingClassCode = teachingClassCode;
+    }
+
     [JsonPropertyName("kcrwdm")]
     [Display(Name = "课程任务代码")]
     public string? CourseTaskCode { get; set; }
@@ -126,7 +139,7 @@ public partial class CourseItem : ObservableObject
 
     public override string ToString()
     {
-        if (String.IsNullOrWhiteSpace(ActivityDescription))
+        if (string.IsNullOrWhiteSpace(ActivityDescription))
         {
             return $"[{CourseCode}] {CourseName} - {TeacherName} ({Credits}学分) 限选{PlannedStudentCount}/已选{SelectedStudentCount}";
         }

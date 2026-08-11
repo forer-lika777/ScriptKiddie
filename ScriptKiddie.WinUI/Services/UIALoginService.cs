@@ -15,7 +15,7 @@ namespace ScriptKiddie.WinUI.Services;
 
 public class UIALoginService : ILoginService
 {
-    private readonly HttpClientProvider httpClientProvider;
+    private readonly IHttpClientProvider httpClientProvider;
 
     private readonly ILogger<UIALoginService> logger;
 
@@ -35,7 +35,7 @@ public class UIALoginService : ILoginService
     private const string AES_CHARS = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
     private readonly Random random;
 
-    public UIALoginService(HttpClientProvider httpClientProvider, ILogger<UIALoginService> logger)
+    public UIALoginService(IHttpClientProvider httpClientProvider, ILogger<UIALoginService> logger)
     {
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;

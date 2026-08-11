@@ -13,5 +13,4 @@ public interface ICourseSelectService
     public Task<int?> GetSelectLimitCountAsync(CancellationToken cancellationToken);
     public Task BeginSyncCourses(CancellationToken cancellationToken);
     public Task StopSyncCourses();
-    public Task AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 2000);
 }

@@ -1,30 +1,39 @@
-﻿using HtmlAgilityPack;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using ScriptKiddie.WinUI.Models;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Networking.Connectivity;
 
 namespace ScriptKiddie.WinUI.Services;
 
-public partial class CourseSelectService : ICourseSelectService
+/// <summary>
+/// 选课服务。此服务类实现较复杂，并且未经实际测试验证。
+/// </summary>
+public partial class CourseSelectService : ICourseSelectService, IRecipient<SelectScheduleChangedMessage>
 {
-    private readonly HttpClientProvider httpClientProvider;
+    private readonly IHttpClientProvider httpClientProvider;
+    private readonly SelectScheduleProvider selectScheduleProvider;
     private readonly ILogger<CourseSelectService> logger;
 
+    private readonly SemaphoreSlim refreshSemaphore = new SemaphoreSlim(0, int.MaxValue);
+    private readonly SemaphoreSlim taskLock = new SemaphoreSlim(1, 1);
+    private CancellationTokenSource? refreshCts;
+    //private bool isRefreshing = false;
+
+    private readonly ObservableCollection<SelectSchedule> selectSchedules;
+
+    //private static readonly SemaphoreSlim _syncSemaphore = new SemaphoreSlim(1, 1);
+
+    public List<CourseSelectTask> SelectTasks { get; } = [];
+
     private const string BASE_URL = "https://jxfw.gdut.edu.cn";
-    private const string MAIN_PAGE_URL = BASE_URL + "/login!welcome.action";
-    private const string GET_SELECTED_COURSES_URL = BASE_URL + "/xsxklist!getXzkcList.action";
-    private const string GET_SELECTABLE_COURSES_URL = BASE_URL + "/xsxklist!getDataList.action";
-    private const string ADD_COURSE_URL = BASE_URL + "/xsxklist!getAdd.action";
-    private const string GET_COURSE_SELECT_PAGE_URL = BASE_URL + "/xsxklist!xsmhxsxk.action";
+    private const string CAPTCHA_PAGE_URL = BASE_URL + "/waf_text_verify.html";
 
     private CourseResponse? selectableCourses = null;
     private List<CourseItem>? selectedCourses = null;
@@ -32,10 +41,25 @@ public partial class CourseSelectService : ICourseSelectService
     private CancellationTokenSource? syncSelectableCoursesCts = null;
     //private CancellationTokenSource? syncSelectedCoursesCts = null;
 
-    public CourseSelectService(HttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger)
+    //private bool isSyncingCourses = false;
+    private bool isInternalSyncingCourses = false;
+
+    //private bool isExecutingTask = false;
+
+    //private volatile int activeTaskCount = 0;
+
+    private event EventHandler? SelectableCoursesChanged;
+    private event EventHandler? SelectedCoursesChanged;
+
+    private int selectCountLimit;
+
+    public CourseSelectService(IHttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger, SelectScheduleProvider selectScheduleProvider)
     {
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
+        this.selectScheduleProvider = selectScheduleProvider;
+        selectSchedules = selectScheduleProvider.SelectSchedules;
+        WeakReferenceMessenger.Default.Register(this);
     }
 
     public async Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
@@ -50,29 +74,11 @@ public partial class CourseSelectService : ICourseSelectService
         return selectedCourses;
     }
 
-    //private async Task SyncSelectableCoursesAsync(CancellationTokenSource cts)
-    //{
-    //    try
-    //    {
-    //        while (!cts.IsCancellationRequested)
-    //        {
-    //            await Task.Delay(1500, cts.Token);
-    //            await RefreshSelectableCoursesAsync(cts.Token);
-    //        }
-    //    }
-    //    catch (OperationCanceledException)
-    //    {
-    //        logger.LogInformation("已停止课程列表自动更新");
-    //    }
-    //    finally
-    //    {
-    //        // 关键：任务彻底结束后，手动 Dispose 掉，防止内存泄漏！
-    //        cts.Dispose();
-    //    }
-    //}
-
     public async Task BeginSyncCourses(CancellationToken cancellationToken)
     {
+        if (isInternalSyncingCourses)
+            return;
+
         if (syncSelectableCoursesCts is not null && !syncSelectableCoursesCts.IsCancellationRequested)
             return;
 
@@ -97,317 +103,605 @@ public partial class CourseSelectService : ICourseSelectService
 
     public async Task StopSyncCourses()
     {
+        if (isInternalSyncingCourses)
+            return;
+
         if (syncSelectableCoursesCts is null)
             return;
 
         CancelCts(ref syncSelectableCoursesCts);
     }
 
-    private async Task RefreshSelectableCoursesAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// 刷新可选课程列表。
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns>是否刷新成功</returns>
+    private async Task<bool> RefreshSelectableCoursesAsync(CancellationToken cancellationToken)
     {
-        int page = 1;
-        int pageSize = 100;
-        int total = -1;
-
-        var courses = new CourseResponse();
-
         try
         {
-            while (total == -1 || pageSize * (page - 1) < total)
-            {
-                using var request = new HttpRequestMessage(HttpMethod.Post, GET_SELECTABLE_COURSES_URL);
+            selectableCourses = await httpClientProvider.FetchSelectableCoursesAsync(cancellationToken);
 
-                var formData = new Dictionary<string, string>
-                {
-                    { "page", page.ToString() },
-                    { "rows", pageSize.ToString() },
-                    { "sort", "kcrwdm" },
-                    { "order", "asc" }
-                };
+            SelectableCoursesChanged?.Invoke(this, EventArgs.Empty);
 
-                using var content = new FormUrlEncodedContent(formData);
-
-                request.Content = content;
-                request.Headers.Referrer = new Uri(BASE_URL);
-
-                using var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                    var courseResponse = await JsonSerializer.DeserializeAsync(stream, CourseResponseJsonContext.Default.CourseResponse, cancellationToken);
-
-                    if (courseResponse == null)
-                    {
-                        logger.LogError("Could not deserialize raw data to type {typeof(CourseResponseJsonContext)}. Raw data: {response.Content}", typeof(CourseResponseJsonContext), await response.Content.ReadAsStringAsync(cancellationToken));
-                        selectableCourses = total == -1 ? null : courses;
-                        return;
-                    }
-
-                    courses.Total = total = courseResponse.Total;
-                    courses.Rows.AddRange(courseResponse.Rows);
-
-                    logger.LogInformation("Successfully get selectable courses.. Current response count is: {count2}. Current total count is: {count3}", courseResponse.Rows.Count, courses.Total);
-
-                    page++;
-                    continue;
-                }
-
-                string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-
-                logger.LogError("Request returned a failure. Raw data: {responseContent}", responseContent);
-
-                selectableCourses = courses.Total == -1 ? null : courses;
-                return;
-            }
-
-            selectableCourses = courses;
+            return true;
         }
         catch (OperationCanceledException)
         {
-            // 捕获取消异常：这是正常的操作终止，不需要 LogError，直接让它优雅退出
             logger.LogInformation("RefreshSelectableCoursesAsync was canceled.");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "{Message}", ex.Message);
-            return;
-        }
-    }
-
-    private async Task RefreshSelectedCoursesAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Post, GET_SELECTED_COURSES_URL);
-
-            var formData = new Dictionary<string, string>
-            {
-                { "sort", "kcrwdm" },
-                { "order", "asc" },
-            };
-
-            using var content = new FormUrlEncodedContent(formData);
-            request.Content = content;
-            request.Headers.Referrer = new Uri(BASE_URL);
-
-            using var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                selectedCourses = await JsonSerializer.DeserializeAsync(stream, CourseItemListJsonContext.Default.ListCourseItem, cancellationToken);
-
-                if (selectedCourses == null)
-                {
-                    logger.LogError("Could not deserialize raw data to type {Type}. Raw data: {response.Content}", typeof(List<CourseItem>), await response.Content.ReadAsStringAsync(cancellationToken));
-                    return;
-                }
-
-                logger.LogInformation("Successfully request selected courses. Courses count: {Count}", selectedCourses.Count);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 捕获取消异常：这是正常的操作终止，不需要 LogError，直接让它优雅退出
-            logger.LogInformation("RefreshSelectedCoursesAsync was canceled.");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "{Message}", ex.Message);
-            return;
-        }
-    }
-
-    public async Task AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 2000)
-    {
-        var now = DateTime.Now;
-        var selectTime = openTime.AddMilliseconds(-4000);
-        var delay = selectTime - now;
-
-        if (delay.TotalHours > 24 || delay.TotalHours < -24)
-        {
-            logger.LogError("Cannot set a schedule that is more than 24 hours away from the current time. Please set this plan later. Time elapsed: {elapse}", delay.ToString());
-            return;
-        }
-
-        await RefreshSelectableCoursesAsync(cancellationToken);
-        await RefreshSelectedCoursesAsync(cancellationToken);
-
-        if (selectableCourses == null || !selectableCourses.Rows.Any(item => item.Equals(course)))
-        {
-            logger.LogError("Plan cancelled because target course is not contained in the selectable courses list.");
-            return;
-        }
-        if (selectedCourses != null && selectedCourses.Any(item => item.Equals(course)))
-        {
-            logger.LogError("Plan cancelled because target course has contained in the selected courses list.");
-            return;
-        }
-
-        if (delay.TotalMilliseconds > 0)
-        {
-            logger.LogDebug("Course select will start at {selectTime}. Waiting {delay.TotalSeconds} seconds to start selecting...", selectTime, $"{delay.TotalSeconds:F1}");
-            await Task.Delay(delay, cancellationToken);
-        }
-        else
-        {
-            logger.LogWarning("It seems that the opening time have passed. Start selecting immediately.");
-        }
-
-        logger.LogDebug("Start selecting: {CourseName} ({CourseTaskCode})", course.CourseName, course.CourseTaskCode);
-        var result = await BeginAddCycle(course, cancellationToken, interval);
-
-        if (result)
-        {
-            logger.LogDebug("Successfully selected: {CourseName}!", course.CourseName);
-            logger.LogDebug($"Please wait for me to confirm select status...");
-            await RefreshSelectedCoursesAsync(cancellationToken);
-            if (selectedCourses == null)
-            {
-                logger.LogDebug("Failed to check selected courses. Please manually check it by yourself.");
-                return;
-            }
-
-            if (selectedCourses.Any(item => item.Equals(course)))
-            {
-                logger.LogDebug("Found selected course: {CourseName}. Your course has been successfully selected!", course.CourseName);
-                return;
-            }
-            else
-            {
-                logger.LogError("Course not found in your selected courses list.");
-                return;
-            }
-        }
-        else
-        {
-            logger.LogDebug("Select failed: {CourseName}，attempt limit reached.", course.CourseName);
-            return;
-        }
-    }
-
-    private async Task<bool> BeginAddCycle(CourseItem course, CancellationToken cancellationToken, int interval = 2000, int limitTimes = 1000)
-    {
-        int cycleTimes = 0;
-        var stopWatch = new Stopwatch();
-
-        if (course.CourseTaskCode == null || course.CourseName == null)
-        {
             return false;
-        }
-
-        while (!cancellationToken.IsCancellationRequested && cycleTimes < limitTimes)
-        {
-            try
-            {
-                stopWatch.Restart();
-
-                var request = new HttpRequestMessage(HttpMethod.Post, ADD_COURSE_URL);
-
-                var formData = new Dictionary<string, string>
-                {
-                    { "kcrwdm", course.CourseTaskCode },
-                    { "kcmc", course.CourseName },
-                };
-
-                var content = new FormUrlEncodedContent(formData);
-
-                request.Content = content;
-                request.Headers.Referrer = new Uri(BASE_URL);
-
-                var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
-
-                //logger.LogDebug("Response: {response.StatusCode}", response.StatusCode);
-
-                // 你妈傻逼选课失败还返回200，我操你妈还要我自己判断
-
-                string information = await response.Content.ReadAsStringAsync();
-
-                logger.LogDebug("{inmformation}", information);
-
-                if (information != "1") // 选课成功返回1！你是真幽默，返回个1！
-                {
-                    logger.LogDebug("Select failed, because {information}", information);
-                    if (information.Contains("超出选课要求门数"))
-                    {
-                        logger.LogError("Select failed because select count limit arrived.");
-                        return false;
-                    }
-                    if (information.Contains("选课人数超出，请选其他课程"))
-                    {
-                        logger.LogDebug("Select failed because this course is full.");
-                    }
-                    if (information.Contains("您已经选了该门课程"))
-                    {
-                        logger.LogError("Select failed because you have selected this course.");
-                        return false;
-                    }
-                }
-                else
-                {
-                    logger.LogDebug("Successful request add course.");
-                    return true;
-                }
-
-                stopWatch.Stop();
-                int milliseconds = (int)stopWatch.ElapsedMilliseconds;
-
-                if (interval > milliseconds)
-                {
-                    await Task.Delay((interval - milliseconds));
-                }
-
-                logger.LogDebug("Add request returned a failure. Raw data: {response.Content}", await response.Content.ReadAsStringAsync());
-
-                cycleTimes++;
-            }
-            catch (Exception ex)
-            {
-                logger.LogDebug("{Message}", ex.Message);
-                return false;
-            }
         }
 
         return false;
     }
 
-    public async Task<int?> GetSelectLimitCountAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// 刷新已选课程列表。
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns>是否刷新成功</returns>
+    private async Task<bool> RefreshSelectedCoursesAsync(CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, GET_COURSE_SELECT_PAGE_URL);
-        request.Headers.Referrer = new Uri(MAIN_PAGE_URL);
-
-        var response = await httpClientProvider.GetCurrentClient().SendAsync(request, cancellationToken);
-
-        string htmlContent = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        var doc = new HtmlDocument();
-        doc.LoadHtml(htmlContent);
-
-        // 通过 id="header" 定位到 h2 标签
-        var headerNode = doc.GetElementbyId("header");
-        if (headerNode == null)
+        try
         {
-            logger.LogError("无法找到 header 元素。提取限选字段失败。");
-            return null;
+            selectedCourses = await httpClientProvider.FetchSelectedCoursesAsync(cancellationToken);
+
+            SelectedCoursesChanged?.Invoke(this, EventArgs.Empty);
+
+            return true;
         }
-
-        // 获取包含文本的完整内容
-        string fullText = headerNode.InnerText.Trim();
-
-        // 使用正则表达式提取 "限选 X" 中的数字
-        var match = SelectLimitCountRegex().Match(fullText);
-        if (!match.Success)
+        catch (OperationCanceledException)
         {
-            logger.LogError("没有匹配到目标数字。提取限选字段失败。");
-            return null;
+            logger.LogError("RefreshSelectedCoursesAsync was canceled.");
+            return false;
         }
-
-        return int.Parse(match.Groups[1].Value);
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "{Message}", ex.Message);
+            return false;
+        }
     }
 
-    [GeneratedRegex(@"限选(?:&nbsp;|\s)*(\d+)")]
-    private static partial Regex SelectLimitCountRegex();
+    public void Receive(SelectScheduleChangedMessage message)
+    {
+        UpdateTasks();
+    }
+
+    /// <summary>
+    /// 添加一个与课程和时间表关联的选课任务到任务列表。
+    /// </summary>
+    /// <param name="course">要添加的课程</param>
+    /// <param name="selectSchedule">要关联的时间表</param>
+    /// <param name="operationType">操作类型（选课、退选）</param>
+    public bool AddCourse(CourseItem course, SelectSchedule selectSchedule, OperationType operationType)
+    {
+        if (SelectTasks.Any(task => task.Course.Equals(course)))
+        {
+            logger.LogError("添加课程失败：已存在该课程的任务。");
+            return false;
+        }
+
+        if (!selectSchedules.Contains(selectSchedule))
+        {
+            logger.LogError("添加课程失败：没有找到时间表。");
+            return false;
+        }
+
+        if (selectSchedule.SelectType == SelectType.WithdrawOnly)
+        {
+            if (operationType == OperationType.Select || operationType == OperationType.WithdrawToSelect)
+            {
+                logger.LogError("添加课程失败：操作类型与时间表的选择方式不匹配。");
+                return false;
+            }
+        }
+
+        if (selectSchedule.SelectType == SelectType.SelectOnly)
+        {
+            if (operationType == OperationType.Withdraw || operationType == OperationType.WithdrawToSelect)
+            {
+                logger.LogError("添加课程失败：操作类型与时间表的选择方式不匹配。");
+                return false;
+            }
+        }
+
+        var now = DateTime.Now;
+        if (selectSchedule.ScheduleTime.EndTime < now)
+        {
+            logger.LogError("无法关联到已经结束的时间表。");
+            return false;
+        }
+
+        var task = new CourseSelectTask(selectSchedule, course, SelectStatus.Pending, operationType);
+        SelectTasks.Add(task);
+
+        _ = ExcuteTask(task);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 将与课程关联的任务从任务列表中移除。
+    /// </summary>
+    /// <param name="course">要移除的课程</param>
+    public bool RemoveCourse(CourseItem course)
+    {
+        // 先取消，再一次性删除
+        var tasksToRemove = SelectTasks.Where(t => t.Course.Equals(course)).ToList();
+
+        if (tasksToRemove.Count == 0)
+        {
+            logger.LogError("删除失败：没有在任务列表中找到匹配的课程项。");
+            return false;
+        }
+
+        foreach (var task in tasksToRemove)
+            task.cts.Cancel();
+
+        SelectTasks.RemoveAll(t => t.Course.Equals(course));
+
+        return true;
+    }
+
+    private void UpdateTasks()
+    {
+        var tasksToRemove = SelectTasks
+            .Where(task => !selectSchedules.Contains(task.SelectSchedule))
+            .ToList();
+
+        foreach (var task in tasksToRemove)
+            task.cts.Cancel();
+
+        SelectTasks.RemoveAll(task => !selectSchedules.Contains(task.SelectSchedule));
+    }
+
+    private async Task ExcuteTask(CourseSelectTask task)
+    {
+        var now = DateTime.Now;
+        try
+        {
+            logger.LogInformation("已设定选课任务：{hash}。目标课程：{Course}，设定时间：{Time}，操作类型：{Type}", task.GetHashCode(), task.Course.ToString(), task.SelectSchedule.ScheduleTime.ToString(), task.OperationType.ToString());
+
+            if (now < task.SelectSchedule.ScheduleTime.StartTime.AddSeconds(-3))
+            {
+                var time = task.SelectSchedule.ScheduleTime.StartTime.AddSeconds(-3) - now;
+                logger.LogInformation("等待 {Seconds} 执行选课任务。", time.TotalSeconds);
+                task.SelectStatus = SelectStatus.Pending;
+                await Task.Delay(time, task.cts.Token);
+
+                if (task.OperationType == OperationType.Select)
+                {
+                    task.SelectStatus = SelectStatus.Executing;
+                    if (await HighSpeedRequest(task.Course, task.cts.Token))
+                        task.SelectStatus = SelectStatus.Completed;
+                }
+                else
+                {
+                    await Task.Delay(3000);
+                    task.SelectStatus = SelectStatus.Executing;
+
+                    if (task.OperationType == OperationType.Withdraw)
+                    {
+                        if (await LowSpeedRequest(task.Course, task.OperationType, task.cts.Token))
+                            task.SelectStatus = SelectStatus.Completed;
+                    }
+                    else if (task.OperationType == OperationType.WithdrawToSelect)
+                    {
+                        if (task.CourseToWithdraw == null)
+                            throw new NullReferenceException(nameof(task.CourseToWithdraw));
+
+                        if (await WaitForRefreshThenCheck(task.CourseToWithdraw, task.Course, task.cts.Token))
+                            task.SelectStatus = SelectStatus.Completed;
+                    }
+                }
+            }
+            else if (now >= task.SelectSchedule.ScheduleTime.StartTime.AddSeconds(-3) && now < task.SelectSchedule.ScheduleTime.EndTime)
+            {
+                logger.LogInformation("开始选课时间已过。");
+
+                task.SelectStatus = SelectStatus.Executing;
+
+                if (task.OperationType == OperationType.Select || task.OperationType == OperationType.Withdraw)
+                {
+                    if (await LowSpeedRequest(task.Course, task.OperationType, task.cts.Token))
+                        task.SelectStatus = SelectStatus.Completed;
+                }
+                else if (task.OperationType == OperationType.WithdrawToSelect)
+                {
+                    if (task.CourseToWithdraw == null)
+                        throw new NullReferenceException(nameof(task.CourseToWithdraw));
+
+                    if (await WaitForRefreshThenCheck(task.CourseToWithdraw, task.Course, task.cts.Token))
+                        task.SelectStatus = SelectStatus.Completed;
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("操作已终止。");
+            task.SelectStatus = SelectStatus.Canceled;
+            return;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("引发了未知异常：{Message}", ex.Message);
+            task.SelectStatus = SelectStatus.Failed;
+            return;
+        }
+    }
+
+    /// <summary>
+    /// 任务调用：等待下一次刷新完成，然后检查自己的课程
+    /// </summary>
+    private async Task<bool> WaitForRefreshThenCheck(CourseItem course, CourseItem courseToWithdraw, CancellationToken cancellationToken)
+    {
+        // 如果循环还没启动，启动它
+        RequestRefreshCourses(cancellationToken);
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            // 等待下一次刷新完成
+            await refreshSemaphore.WaitAsync(cancellationToken);
+
+            // 数据已刷新，检查自己的课程
+            var courses = selectableCourses; // 读取引用（原子操作）
+            var targetCourse = courses?.Rows.FirstOrDefault(c => c.Equals(course));
+            //var targetCourse = selectableCourses?.Rows.FirstOrDefault(c => c.Equals(course));
+
+            if (targetCourse == null)
+            {
+                logger.LogError("没有在可选课程列表中找到目标课程。");
+                return false;
+            }
+
+            if (!targetCourse.IsFull)
+            {
+                // 课程有空位，执行选课
+                return await TryWithdrawAndSelect(courseToWithdraw, course, cancellationToken);
+            }
+
+            // 课程还满着，继续等待下一次刷新
+            logger.LogDebug("课程 {Course} 仍满，等待下一次刷新", course);
+        }
+
+        return false;
+    }
+
+    private async Task<bool> TryWithdrawAndSelect(CourseItem withdrawCourse, CourseItem selectCourse, CancellationToken cancellationToken)
+    {
+        if (!await LowSpeedRequest(withdrawCourse, OperationType.Withdraw, cancellationToken, 5))
+        {
+            logger.LogError("退选 {Course} 失败。请检查错误信息。", withdrawCourse);
+            return false;
+        }
+
+        return await LowSpeedRequest(selectCourse, OperationType.Select, cancellationToken, 5);
+    }
+
+    /// <summary>
+    /// 启动刷新循环（由第一个任务触发）
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    private void RequestRefreshCourses(CancellationToken cancellationToken)
+    {
+        taskLock.Wait(cancellationToken);
+        try
+        {
+            if (isInternalSyncingCourses)
+                return;
+            isInternalSyncingCourses = true;
+            refreshCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _ = RefreshLoopAsync(refreshCts.Token);
+        }
+        finally
+        {
+            taskLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// 刷新循环：不断请求最新数据，每次请求完成就通知等待的任务
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private async Task RefreshLoopAsync(CancellationToken cancellationToken)
+    {
+        int failTime = 0;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            // 刷新一次数据
+            if (!await RefreshSelectableCoursesAsync(cancellationToken))
+            {
+                failTime++;
+                logger.LogError("更新数据失败，请检查错误信息。当前失败次数为 {Count}", failTime);
+                if (failTime > 10)
+                {
+                    logger.LogError("已达失败次数限制。");
+                    break;
+                }
+
+                await Task.Delay(3000, cancellationToken);
+
+                continue;
+            }
+
+            failTime = 0;
+
+            // 通知所有等待的任务：数据更新了
+            refreshSemaphore.Release(int.MaxValue);
+
+            await Task.Delay(1500, cancellationToken);
+        }
+
+        try
+        {
+            // 循环结束，重置状态
+            taskLock.Wait(cancellationToken);
+            isInternalSyncingCourses = false;
+        }
+        catch (OperationCanceledException)
+        {
+            // 取消触发，直接返回，不重置状态
+            return;
+        }
+        finally
+        {
+            taskLock.Release();
+        }
+    }
+
+    //private async Task<bool> WithdrawToSelectCycle(CourseItem course, CourseItem courseToWithdraw, CancellationToken cancellationToken)
+    //{
+    //    int cycleCount = 0;
+
+    //    while (!cancellationToken.IsCancellationRequested)
+    //    {
+    //        cycleCount++;
+
+    //        await RefreshSelectableCoursesAsync(cancellationToken);
+
+    //        var newCourse = selectableCourses!.Rows.FirstOrDefault(c => c.Equals(course));
+
+    //        if (newCourse is null)
+    //            throw new InvalidOperationException("没有在列表中找到要选择的课程！");
+
+    //        if (newCourse.IsFull)
+    //        {
+    //            logger.LogInformation("目标课程已满。等待下一个周期检查。");
+    //        }
+    //        else
+    //        {
+    //            if (!await LowSpeedRequest(courseToWithdraw, OperationType.Withdraw, cancellationToken))
+    //            {
+    //                logger.LogError("没有退选成功。");
+    //                return false;
+    //            }
+
+    //            logger.LogInformation("成功退选课程：{Course}", courseToWithdraw.ToString());
+
+    //            if (await LowSpeedRequest(course, OperationType.Select, cancellationToken))
+    //            {
+    //                logger.LogInformation("成功选择课程：{Course}", course.ToString());
+    //            }
+    //        }
+
+    //        logger.LogInformation("目标课程已满，选课失败。等待 2 秒重试。当前循环次数为 {Count}", cycleCount);
+
+    //        await Task.Delay(2000, cancellationToken);
+    //    }
+
+    //    throw new OperationCanceledException();
+    //}
+
+    /// <summary>
+    /// 发送高频请求。仅选课。
+    /// </summary>
+    /// <param name="course"></param>
+    /// <param name="cancellationToken"></param>
+    /// <param name="interval"></param>
+    /// <param name="maxConcurrency"></param>
+    /// <param name="maxAttempts"></param>
+    /// <returns></returns>
+    private async Task<bool> HighSpeedRequest(CourseItem course, CancellationToken cancellationToken, int interval = 15, int maxConcurrency = 5, int maxAttempts = 700)
+    {
+        logger.LogInformation("开始高频并发选课：{Course}，并发数 {Concurrency}，启动间隔 {Interval}ms，总上限 {MaxAttempts}", course.ToString(), maxConcurrency, interval, maxAttempts);
+
+        var semaphore = new SemaphoreSlim(maxConcurrency, maxConcurrency);
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var tasks = new List<Task>();
+
+        int successFlag = 0;
+        int totalAttempts = 0;
+
+        try
+        {
+            for (int i = 0; i < maxAttempts && !cts.IsCancellationRequested; i++)
+            {
+                await semaphore.WaitAsync(cts.Token);
+
+                var task = Task.Run(async () =>
+                {
+                    try
+                    {
+                        Interlocked.Increment(ref totalAttempts);
+                        var response = await httpClientProvider.SendAddCourseRequestAsync(course, cts.Token);
+                        string information = await response.Content.ReadAsStringAsync(cts.Token);
+
+                        logger.LogDebug("返回的信息：{information}", information);
+
+                        if (information.Trim() == "1")
+                        {
+                            Interlocked.Exchange(ref successFlag, 1);
+                            cts.Cancel();
+                            logger.LogInformation("高频并发选课成功！课程：{Course}，总请求数：{Total}", course.ToString(), totalAttempts);
+                            return;
+                        }
+                        else
+                        {
+                            logger.LogError("选课失败，因为：{information}", information);
+
+                            if (information.Contains("选课人数超出，请选其他课程"))
+                                logger.LogError("选课失败，因为课程人数超出。");
+
+                            if (information.Contains("现在不是选课时间"))
+                                logger.LogError("选课失败，因为现在不是选课时间。");
+
+                            if (information.Contains("超出选课要求门数"))
+                            {
+                                logger.LogError("选课失败，因为超出了选课要求门数。");
+                                cts.Cancel();
+                            }
+
+                            if (information.Contains("您已经选了该门课程"))
+                            {
+                                logger.LogError("选课失败，因为你已经选择了该课程。");
+                                cts.Cancel();
+                            }
+
+                            if (response.RequestMessage?.RequestUri?.ToString() == CAPTCHA_PAGE_URL)
+                            {
+                                logger.LogError("要求输入验证码。");
+                                WeakReferenceMessenger.Default.Send<NeedCaptchaMessage>(new NeedCaptchaMessage());
+                                cts.Cancel();
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                });
+
+                tasks.Add(task);
+
+                await Task.Delay(interval, cts.Token);
+            }
+
+            // 等待所有任务完成（忽略取消异常）
+            await Task.WhenAll(tasks).WaitAsync(cts.Token);
+        }
+        catch (OperationCanceledException) { }
+
+        return successFlag == 1;
+    }
+
+    /// <summary>
+    /// 发送低频请求。选课与退选。
+    /// </summary>
+    /// <param name="course">要操作的课程</param>
+    /// <param name="operationType">操作方式（选课、退选）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="countLimit">次数限制，设为 0 表示无限制</param>
+    /// <param name="interval">请求间隔</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    private async Task<bool> LowSpeedRequest(CourseItem course, OperationType operationType, CancellationToken cancellationToken, int countLimit = 0, int interval = 2000)
+    {
+        if (countLimit < 0)
+            throw new ArgumentException("限制次数不能小于零：" + countLimit);
+
+        if (operationType == OperationType.WithdrawToSelect)
+            throw new ArgumentException($"输入的的操作种类枚举不能为 {OperationType.WithdrawToSelect}");
+
+        logger.LogInformation("即将开始选择课程：{Course}。间隔：{Interval}，限制次数：{LimitCount}", course.ToString(), interval, countLimit);
+
+        int cycleCount = 0;
+
+        while (countLimit == 0 || cycleCount < countLimit)
+        {
+            if (operationType == OperationType.Select)
+            {
+                var response = await httpClientProvider.SendAddCourseRequestAsync(course, cancellationToken);
+
+                string information = await response.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogDebug("返回的信息：{inmformation}", information);
+
+                if (information.Trim() == "1") // 选课成功返回1！你是真幽默，返回个1！
+                {
+                    logger.LogInformation("成功请求添加课程操作。");
+                    return true;
+                }
+                else
+                {
+                    logger.LogError("选课失败，因为：{information}", information);
+                    if (information.Contains("选课人数超出，请选其他课程"))
+                    {
+                        logger.LogError("选课失败，因为课程人数超出。");
+                    }
+
+                    if (information.Contains("超出选课要求门数"))
+                    {
+                        logger.LogError("选课失败，因为超出了选课要求门数。");
+                        return false;
+                    }
+
+                    if (information.Contains("您已经选了该门课程"))
+                    {
+                        logger.LogError("选课失败，因为你已经选择了该课程。");
+                        return false;
+                    }
+
+                    if (response.RequestMessage?.RequestUri?.ToString() == CAPTCHA_PAGE_URL)
+                    {
+                        logger.LogError("要求输入验证码。");
+                        WeakReferenceMessenger.Default.Send<NeedCaptchaMessage>(new NeedCaptchaMessage());
+                        return false;
+                    }
+                }
+            }
+            else if (operationType == OperationType.Withdraw)
+            {
+                var response = await httpClientProvider.SendWithdrawCourseRequestAsync(course, cancellationToken);
+
+                string information = await response.Content.ReadAsStringAsync();
+
+                logger.LogDebug("返回的信息：{inmformation}", information);
+
+                if (information.Trim() == "1")
+                {
+                    logger.LogInformation("成功请求退选课程操作。");
+                    return true;
+                }
+                else
+                {
+                    logger.LogError("退选失败，因为：{information}", information);
+                    if (response.RequestMessage?.RequestUri?.ToString() == CAPTCHA_PAGE_URL)
+                    {
+                        logger.LogError("要求输入验证码。");
+                        WeakReferenceMessenger.Default.Send<NeedCaptchaMessage>(new NeedCaptchaMessage());
+                        return false;
+                    }
+
+                    return false;
+                }
+            }
+
+            cycleCount++;
+
+            logger.LogInformation("选课失败。等待 {Interval} 毫秒重试。当前循环次数为 {Count}", interval, cycleCount);
+
+            await Task.Delay(interval, cancellationToken);
+        }
+
+        logger.LogError("选课失败，已达最大次数限制：{Limit}", countLimit);
+        return false;
+    }
+
+    public async Task<int?> GetSelectLimitCountAsync(CancellationToken cancellationToken)
+    {
+        if (selectCountLimit != 0)
+            return selectCountLimit;
+
+        selectCountLimit = await httpClientProvider.FetchCourseSelectLimitCountAsync(cancellationToken);
+
+        return selectCountLimit;
+    }
 
     private static void ResetCts(ref CancellationTokenSource? cts, CancellationTokenSource? ctsToUse = null)
     {

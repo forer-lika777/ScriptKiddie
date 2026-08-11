@@ -78,12 +78,22 @@ public partial class App : Application
     {
         services.AddSingleton<IAppSettingsService, WindowsAppSettingsService>();
 
-        services.AddSingleton<ICourseSelectService, MockCourseSelectService>();
-        services.AddSingleton<ILoginService, MockLoginService>();
+        bool addMockServices = true;
+
+        if (addMockServices)
+        {
+            services.AddSingleton<ICourseSelectService, MockCourseSelectService>();
+            services.AddSingleton<ILoginService, MockLoginService>();
+            services.AddSingleton<IHttpClientProvider, HttpClientProvider>();
+        }
+        else
+        {
+            services.AddSingleton<ICourseSelectService, CourseSelectService>();
+            services.AddSingleton<ILoginService, UIALoginService>();
+            services.AddSingleton<IHttpClientProvider, MockHttpClientProvider>();
+        }
 
         services.AddSingleton<AccountManageService>();
-
-        services.AddSingleton<HttpClientProvider>();
         services.AddSingleton<SelectScheduleProvider>();
 
         services.AddSingleton<NavigationService>();
