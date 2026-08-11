@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ScriptKiddie.WinUI.Tests (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ScriptKiddie.WinUI.Tests (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
