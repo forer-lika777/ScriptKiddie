@@ -79,6 +79,9 @@ public class UIALoginService : ILoginService
 
             if (loginOption.LoadCookie)
             {
+                if (loginOption.CookieContent is null)
+                    throw new NullReferenceException($"期望加载 Cookie，但 {nameof(loginOption.CookieContent)} 是 null。");
+
                 httpClientProvider.SetCookies(loginOption.CookieContent);
             }
 
@@ -409,6 +412,7 @@ public class UIALoginService : ILoginService
         {
             result[i] = AES_CHARS[random.Next(AES_CHARS.Length)];
         }
+
         return new string(result);
     }
 
