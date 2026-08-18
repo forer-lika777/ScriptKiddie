@@ -9,7 +9,25 @@
     mc:Ignorable="d">
 
     <StackPanel Padding="40, 60, 20, 20" Spacing="20">
-        <TextBlock x:Name="WelcomeTextBlock" Text="欢迎来到 ScriptKiddie - WinUI" FontSize="35" FontWeight="Bold"/>
-        <TextBlock x:Name="Welcome2TextBlock" Text="在左侧选择选项卡执行相关操作"/>
+        <TextBlock x:Name="WelcomeTextBlock" Text="欢迎来到 ScriptKiddie - WinUI" FontSize="35" FontWeight="Bold">
+            <TextBlock.RenderTransform>
+                <TranslateTransform />
+            </TextBlock.RenderTransform>
+            <TextBlock.Transitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition FromHorizontalOffset="100"/>
+                </TransitionCollection>
+            </TextBlock.Transitions>
+        </TextBlock>
+        <TextBlock x:Name="Welcome2TextBlock" Text="在左侧选择选项卡执行相关操作">
+            <TextBlock.RenderTransform>
+                <TranslateTransform />
+            </TextBlock.RenderTransform>
+            <TextBlock.Transitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition FromHorizontalOffset="50"/>
+                </TransitionCollection>
+            </TextBlock.Transitions>
+        </TextBlock>
     </StackPanel>
 </Page>
