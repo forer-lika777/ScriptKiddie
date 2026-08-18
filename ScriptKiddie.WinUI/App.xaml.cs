@@ -77,24 +77,23 @@ public partial class App : Application
     private static void AddServices(ServiceCollection services)
     {
         services.AddSingleton<IAppSettingsService, WindowsAppSettingsService>();
+        services.AddSingleton<SelectScheduleProvider>();
 
         bool addMockServices = true;
 
         if (addMockServices)
         {
-            services.AddSingleton<ICourseSelectService, MockCourseSelectService>();
             services.AddSingleton<ILoginService, MockLoginService>();
-            services.AddSingleton<IHttpClientProvider, HttpClientProvider>();
+            services.AddSingleton<IHttpClientProvider, MockHttpClientProvider>();
         }
         else
         {
-            services.AddSingleton<ICourseSelectService, CourseSelectService>();
             services.AddSingleton<ILoginService, UIALoginService>();
-            services.AddSingleton<IHttpClientProvider, MockHttpClientProvider>();
+            services.AddSingleton<IHttpClientProvider, HttpClientProvider>();
         }
 
+        services.AddSingleton<ICourseSelectService, CourseSelectService>();
         services.AddSingleton<AccountManageService>();
-        services.AddSingleton<SelectScheduleProvider>();
 
         services.AddSingleton<NavigationService>();
     }
@@ -110,7 +109,7 @@ public partial class App : Application
         {
             builder.AddSimpleConsole(options =>
             {
-                options.SingleLine = true;
+                options.TimestampFormat = "F";
                 options.IncludeScopes = false;
                 options.ColorBehavior = LoggerColorBehavior.Enabled;
             });
