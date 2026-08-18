@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using ScriptKiddie.WinUI.Services;
 using System.Linq;
-using WinRT;
 
 namespace ScriptKiddie.WinUI.Pages;
 

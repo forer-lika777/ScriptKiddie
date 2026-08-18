@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
-using System.Collections.Generic;
 using System.Threading;
-using Windows.Security.EnterpriseData;
 
 namespace ScriptKiddie.WinUI.Models;
 

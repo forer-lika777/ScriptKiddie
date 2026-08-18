@@ -12,7 +12,6 @@ using ScriptKiddie.WinUI.Services;
 using ScriptKiddie.WinUI.ViewModels;
 using System;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace ScriptKiddie.WinUI.Pages;
 

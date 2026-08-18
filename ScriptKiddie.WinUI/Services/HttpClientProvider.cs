@@ -1,6 +1,5 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
-using Microsoft.UI.Xaml.Controls;
 using ScriptKiddie.WinUI.Models;
 using System;
 using System.Collections.Generic;

@@ -1,9 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml.Controls;
-using ScriptKiddie.WinUI.Models;
-using ScriptKiddie.WinUI.Services;
+﻿using Microsoft.UI.Xaml.Controls;
 using ScriptKiddie.WinUI.ViewModels;
-using System.Collections.ObjectModel;
 
 namespace ScriptKiddie.WinUI.Pages.Controls;
 

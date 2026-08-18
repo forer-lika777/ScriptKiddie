@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using ScriptKiddie.WinUI.Models;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Networking.Connectivity;
 
 namespace ScriptKiddie.WinUI.Services;
 

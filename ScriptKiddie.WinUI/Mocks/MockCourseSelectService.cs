@@ -169,6 +169,6 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
 
     public void Receive(SelectScheduleRemoveMessage message)
     {
-        
+
     }
 }

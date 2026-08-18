@@ -6,9 +6,7 @@ using ScriptKiddie.WinUI.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading;
 using System.Threading.Tasks;
-using Windows.Devices.Display.Core;
 
 namespace ScriptKiddie.WinUI.ViewModels;
 
