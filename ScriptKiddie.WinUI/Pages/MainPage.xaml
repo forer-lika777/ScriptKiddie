@@ -11,7 +11,7 @@
     <NavigationView x:Name="NavigationView"
                     IsSettingsVisible="True"
                     PaneDisplayMode="LeftCompact"
-                    ItemInvoked="navigationView_ItemInvoked"
+                    ItemInvoked="NavigationView_ItemInvoked"
                     IsBackEnabled="True"
                     BackRequested="NavigationView_BackRequested">
         <NavigationView.MenuItems>
