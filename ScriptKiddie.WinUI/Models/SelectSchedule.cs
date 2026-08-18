@@ -14,7 +14,17 @@ public partial class CourseSelectTask : ObservableObject
         this.Course = course;
         this.SelectStatus = selectStatus;
         this.OperationType = operationType;
-        this.cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken ?? CancellationToken.None);
+        this.Cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken ?? CancellationToken.None);
+    }
+
+    public CourseSelectTask(SelectSchedule selectSchedule, CourseItem course, CourseItem courseToWithdraw, SelectStatus selectStatus, CancellationToken? cancellationToken = null)
+    {
+        this.SelectSchedule = selectSchedule;
+        this.Course = course;
+        this.CourseToWithdraw = courseToWithdraw;
+        this.SelectStatus = selectStatus;
+        this.OperationType = OperationType.WithdrawToSelect;
+        this.Cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken ?? CancellationToken.None);
     }
 
     [ObservableProperty]
@@ -32,7 +42,16 @@ public partial class CourseSelectTask : ObservableObject
     [ObservableProperty]
     public partial OperationType OperationType { get; set; }
 
-    public CancellationTokenSource cts { get; set; }
+    partial void OnOperationTypeChanged(OperationType value)
+    {
+        if (value == OperationType.WithdrawToSelect)
+        {
+            if (CourseToWithdraw is null)
+                throw new InvalidOperationException("操作类型是退选后选课的任务必须提供要退选的课程。");
+        }
+    }
+
+    public CancellationTokenSource Cts { get; set; }
 }
 
 public partial class SelectSchedule : ObservableObject

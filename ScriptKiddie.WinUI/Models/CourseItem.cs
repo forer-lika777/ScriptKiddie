@@ -137,6 +137,10 @@ public partial class CourseItem : ObservableObject
     [Display(Name = "已满")]
     public partial bool IsFull { get; set; } = false;
 
+    [ObservableProperty]
+    [JsonIgnore]
+    public partial bool IsOperating { get; set; } = false;
+
     public override string ToString()
     {
         if (string.IsNullOrWhiteSpace(ActivityDescription))
@@ -200,6 +204,7 @@ public partial class CourseItem : ObservableObject
             if (display != null && !string.IsNullOrEmpty(display.Name))
                 return display.Name;
         }
+
         return propertyName;
     }
 }

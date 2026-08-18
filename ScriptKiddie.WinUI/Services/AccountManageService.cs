@@ -13,7 +13,7 @@ public partial class AccountManageService
     private readonly ILoginService loginService;
     private readonly ICourseSelectService courseSelectService;
     private readonly IAppSettingsService appSettingsService;
-    private readonly HttpClientProvider httpClientProvider;
+    private readonly IHttpClientProvider httpClientProvider;
 
     private readonly ILogger<AccountManageService> logger;
 
@@ -25,7 +25,7 @@ public partial class AccountManageService
 
     private bool isLoggedIn = false;
 
-    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, IAppSettingsService appSettingsService, HttpClientProvider httpClientProvider, ILogger<AccountManageService> logger)
+    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, IAppSettingsService appSettingsService, IHttpClientProvider httpClientProvider, ILogger<AccountManageService> logger)
     {
         this.loginService = loginService;
         this.courseSelectService = courseSelectService;
@@ -193,6 +193,21 @@ public partial class AccountManageService
         _ = courseSelectService.StopSyncCourses();
     }
 
+    public bool AddCourse(CourseItem course, SelectSchedule schedule, OperationType operationType)
+    {
+        return courseSelectService.AddCourse(course, schedule, operationType);
+    }
+
+    public bool AddCourse(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
+    {
+        return courseSelectService.AddCourse(course, courseToWithdraw, selectSchedule);
+    }
+
+    public bool Remove(CourseItem course)
+    {
+        return courseSelectService.RemoveCourse(course);
+    }
+
     public async Task<int?> GetSelectLimitCountAsync()
     {
         if (!await EnsureLoggedInAsync())
@@ -238,11 +253,6 @@ public partial class AccountManageService
         cts?.Dispose();
         cts = ctsToUse ?? new CancellationTokenSource();
     }
-
-    //public void AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 100)
-    //{
-    //    _ = courseSelectService.AddCourseSelectPlan(course, openTime, cancellationToken);
-    //}
 
     public string GetCaptchaImage()
     {

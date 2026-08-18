@@ -31,7 +31,7 @@ public partial class AccountManagePageModel : ObservableObject, IRecipient<Accou
 
     public void Receive(AccountInfoChangedMessage message)
     {
-        RefreshAccountInfo(message.value);
+        RefreshAccountInfo(message.Value);
     }
 
     private void RefreshAccountInfo(AccountInfo? accountInfo)

@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using ScriptKiddie.WinUI.Models;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Services;
 
@@ -25,12 +27,27 @@ public partial class SelectScheduleProvider : ObservableObject
         Update();
     }
 
-    public void RemoveRange(IEnumerable<SelectSchedule> selectSchedules)
+    public async Task RemoveRange(IEnumerable<SelectSchedule> selectSchedules)
     {
+        var tcs = new TaskCompletionSource();
+
+        // 接受方：CourseSelectService、CourseListPageModel
+        WeakReferenceMessenger.Default.Send<SelectScheduleRemoveMessage>(new SelectScheduleRemoveMessage(selectSchedules, tcs));
+
+        try
+        {
+            await tcs.Task;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
         foreach (var selectSchedule in selectSchedules)
         {
             SelectSchedules.Remove(selectSchedule);
         }
+
         Update();
     }
 
@@ -50,6 +67,9 @@ public partial class SelectScheduleProvider : ObservableObject
     public void Add(SelectSchedule schedule)
     {
         SelectSchedules.Add(schedule);
+
+        WeakReferenceMessenger.Default.Send<SelectScheduleAddedMessage>(new SelectScheduleAddedMessage());
+
         Update();
     }
 
@@ -60,7 +80,5 @@ public partial class SelectScheduleProvider : ObservableObject
     {
         // 集合内容变化不会导致引用地址发生变化。需要手动保存。
         appSettingsService.SelectSchedules.Save();
-
-        WeakReferenceMessenger.Default.Send<SelectScheduleChangedMessage>(new SelectScheduleChangedMessage());
     }
 }

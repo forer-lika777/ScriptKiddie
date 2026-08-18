@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ScriptKiddie.WinUI.Pages.Controls.CourseToWithdrawSelectPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ScriptKiddie.WinUI.Pages.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel>
+        <TextBlock Text="当前选课数量已经达到限制。可以在下方选出要退选的课程。只有在目标课程可选时（人数未满时）会退选该课程，然后尝试选择目标课程。"/>
+    </StackPanel>
+</UserControl>

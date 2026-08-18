@@ -3,13 +3,16 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ScriptKiddie.WinUI.Models;
 using ScriptKiddie.WinUI.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
+using Windows.Devices.Display.Core;
 
 namespace ScriptKiddie.WinUI.ViewModels;
 
-public partial class CourseListPageModel : ObservableObject, IRecipient<SelectScheduleChangedMessage>
+public partial class CourseListPageModel : ObservableObject, IRecipient<SelectScheduleRemoveMessage>, IRecipient<SelectScheduleAddedMessage>
 {
     private readonly AccountManageService accountManageService;
     private readonly SelectScheduleProvider selectScheduleProvider;
@@ -19,8 +22,10 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
         this.accountManageService = accountManageService;
         this.selectScheduleProvider = selectScheduleProvider;
         SelectSchedules = selectScheduleProvider.SelectSchedules;
+        SelectTasks = courseSelectService.GetSelectTasks();
         _ = SyncCoursesContent();
-        WeakReferenceMessenger.Default.Register(this);
+        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
+        WeakReferenceMessenger.Default.Register<SelectScheduleAddedMessage>(this);
     }
 
     [RelayCommand]
@@ -64,15 +69,20 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     [ObservableProperty]
     public partial ObservableCollection<SelectSchedule> SelectSchedules { get; set; } = [];
 
+    [ObservableProperty]
+    public partial ObservableCollection<CourseSelectTask> SelectTasks { get; set; } = [];
+
     partial void OnSelectSchedulesChanged(ObservableCollection<SelectSchedule> value)
     {
-        Receive(null);
+        CheckSelectScheduleCount();
     }
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCourseCommand))]
     public partial bool HasCourseSelectSchedule { get; set; } = false;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCourseCommand))]
     public partial int SelectLimitCount { get; set; } = 0;
 
     [ObservableProperty]
@@ -90,7 +100,27 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
         }
     }
 
-    public void Receive(SelectScheduleChangedMessage? message)
+    public async void Receive(SelectScheduleRemoveMessage message)
+    {
+        try
+        {
+            await message.TaskCompletionSource.Task;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        await Task.Delay(10);
+        CheckSelectScheduleCount();
+    }
+
+    public void Receive(SelectScheduleAddedMessage message)
+    {
+        CheckSelectScheduleCount();
+    }
+
+    private void CheckSelectScheduleCount()
     {
         if (SelectSchedules.Count > 0)
         {
@@ -100,5 +130,83 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
         {
             HasCourseSelectSchedule = false;
         }
+    }
+
+    private bool CanAddCourse()
+    {
+        if (SelectLimitCount == 0)
+            return false;
+
+        return HasCourseSelectSchedule;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanAddCourse))]
+    private async Task AddCourse(CourseItem course)
+    {
+        var selectScheduleTcs = new TaskCompletionSource<SelectSchedule>();
+        WeakReferenceMessenger.Default.Send<RequestChooseSelectScheduleMessage>(new RequestChooseSelectScheduleMessage(selectScheduleTcs));
+
+        SelectSchedule? schedule;
+
+        try
+        {
+            schedule = await selectScheduleTcs.Task;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (schedule is null)
+            return;
+
+        if (SelectedCourses.Count >= SelectLimitCount)
+        {
+            var confirmCourseTcs = new TaskCompletionSource<CourseItem>();
+            WeakReferenceMessenger.Default.Send<RequestConfirmWithdrawCourseMessage>(new RequestConfirmWithdrawCourseMessage(confirmCourseTcs));
+
+            CourseItem? courseToWithdraw;
+
+            try
+            {
+                courseToWithdraw = await confirmCourseTcs.Task;
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            if (courseToWithdraw is null)
+                return;
+
+            accountManageService.AddCourse(course, courseToWithdraw, schedule);
+        }
+        else
+        {
+            accountManageService.AddCourse(course, schedule, OperationType.Select);
+        }
+    }
+
+    [RelayCommand]
+    private async Task WithdrawCourse(CourseItem course)
+    {
+        var selectScheduleTcs = new TaskCompletionSource<SelectSchedule>();
+        WeakReferenceMessenger.Default.Send<RequestChooseSelectScheduleMessage>(new RequestChooseSelectScheduleMessage(selectScheduleTcs));
+
+        SelectSchedule? schedule;
+
+        try
+        {
+            schedule = await selectScheduleTcs.Task;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (schedule is null)
+            return;
+
+        accountManageService.AddCourse(course, schedule, OperationType.Withdraw);
     }
 }

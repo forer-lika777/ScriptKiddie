@@ -30,7 +30,10 @@
     <None Remove="MainPage.xaml" />
     <None Remove="Pages\AccontManagePage.xaml" />
     <None Remove="Pages\Controls\CourseInfoPanel.xaml" />
+    <None Remove="Pages\Controls\CourseToWithdrawSelectPanel.xaml" />
+    <None Remove="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml" />
     <None Remove="Pages\Controls\SelectScheduleEditPanel.xaml" />
+    <None Remove="Pages\Controls\SelectScheduleSelectPanel.xaml" />
     <None Remove="Pages\LoginPage.xaml" />
     <None Remove="Pages\SelectSchedulePage.xaml" />
   </ItemGroup>
@@ -103,6 +106,15 @@
     <None Update="Mocks\Data\SelectableCoursesData.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Pages\Controls\CourseToWithdrawSelectPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Pages\Controls\SelectScheduleSelectPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Pages\Controls\SelectScheduleEditPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

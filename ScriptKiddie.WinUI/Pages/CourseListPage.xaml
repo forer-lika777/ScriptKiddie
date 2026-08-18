@@ -18,102 +18,191 @@
         <ProgressBar 
             VerticalAlignment="Top" Margin="20, 0, 20, 0"
             IsIndeterminate="True" ShowError="{x:Bind ViewModel.LoadingFailed, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
-        <ScrollView Padding="20, 0">
-            <StackPanel Margin="0, 5, 0, 0">
-                <StackPanel Padding="16" Spacing="10">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="选课列表" FontSize="30" Margin="0, 10" 
-                                   ToolTipService.ToolTip="脚本小子的私密空间"/>
-                        <Button x:Name="ConfigureSelectScheduleButton" Content="配置选课任务时间表" Margin="20, 0" VerticalAlignment="Center"
-                                Click="ConfigureSelectScheduleButton_Click"/>
+        <ScrollView Padding="20, 0, 20, 0">
+            <StackPanel Margin="0, 30, 0, 10">
+                <StackPanel Padding="16, 5" Spacing="10">
+                    <StackPanel Spacing="5" Margin="0, 0, 0, 10">
+                        <TextBlock Text="个人选课" FontSize="30"/>
+                        <TextBlock Text="自动处理选课任务" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                     </StackPanel>
-                    <InfoBar IsOpen="{x:Bind ViewModel.HasCourseSelectSchedule, Converter={StaticResource InverseBoolConverter}}"
-                             Severity="Warning" Title="提示" Message="在添加课程之前，你需要先设置一个选课任务时间表"
-                             IsClosable="False">
+                    <Button x:Name="ConfigureSelectScheduleButton" Content="配置选课任务时间表" VerticalAlignment="Center" Click="ConfigureSelectScheduleButton_Click"/>
+                    <InfoBar IsOpen="{x:Bind ViewModel.HasCourseSelectSchedule, Converter={StaticResource InverseBoolConverter}}" Severity="Warning" Title="提示" Message="在添加课程之前，你需要先设置一个选课任务时间表" IsClosable="False">
                         <InfoBar.ActionButton>
                             <Button Content="前往设置" HorizontalAlignment="Right" Click="ConfigureSelectScheduleButton_Click"/>
                         </InfoBar.ActionButton>
                     </InfoBar>
-                    <StackPanel Orientation="Horizontal" 
-                                ToolTipService.ToolTip="解析自网站的网页结构（仅刷新一次）">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTipService.ToolTip="解析自网站的网页结构（仅刷新一次）">
                         <TextBlock Text="限选数量："/>
                         <TextBlock Text="{x:Bind ViewModel.SelectLimitCount, Mode=OneWay}"/>
                     </StackPanel>
-                    <CheckBox Content="启用自动刷新" IsChecked="{x:Bind ViewModel.AutoRefresh, Mode=TwoWay}"
-                              ToolTipService.ToolTip="启用后，将每隔 1.5 秒自动从网站获取最新的课程数据"/>
+                    <CheckBox Content="启用自动刷新" IsChecked="{x:Bind ViewModel.AutoRefresh, Mode=TwoWay}" ToolTipService.ToolTip="启用后，将每隔 1.5 秒自动从网站获取最新的课程数据"/>
                 </StackPanel>
-
-                <ListView ItemsSource="{x:Bind ViewModel.SelectableCourses, Mode=OneWay}" Height="500">
-                    <ListView.Header>
-                        <Grid ColumnSpacing="16" Padding="15, 5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition MinWidth="80"/>
-                                <ColumnDefinition MinWidth="100"/>
-                                <ColumnDefinition Width="80"/>
-                                <ColumnDefinition Width="35"/>
-                                <ColumnDefinition Width="35"/>
-                                <ColumnDefinition Width="50"/>
-                                <ColumnDefinition Width="170" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="课程名称"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                            <TextBlock Grid.Column="1" Text="活动描述"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                            <TextBlock Grid.Column="2" Text="教师"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                            <TextBlock Grid.Column="3" Text="已选"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                            <TextBlock Grid.Column="4" Text="限选"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                            <TextBlock Grid.Column="5" Text="状态"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                            <TextBlock Grid.Column="6" Text="操作"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                        </Grid>
-                    </ListView.Header>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:CourseItem">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition MinWidth="80"/>
-                                    <ColumnDefinition MinWidth="100"/>
-                                    <ColumnDefinition Width="80"/>
-                                    <ColumnDefinition Width="35"/>
-                                    <ColumnDefinition Width="35"/>
-                                    <ColumnDefinition Width="50"/>
-                                    <ColumnDefinition Width="170" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                                           Text="{x:Bind }" ToolTipService.ToolTip="{x:Bind CourseName}"/>
-                                <TextBlock Grid.Column="1" VerticalAlignment="Center"
-                                           Text="{x:Bind ActivityDescription}" ToolTipService.ToolTip="{x:Bind ActivityDescription}"/>
-                                <TextBlock Grid.Column="2" VerticalAlignment="Center"
-                                           Text="{x:Bind TeacherName}" ToolTipService.ToolTip="{x:Bind TeacherName}"/>
-                                <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                                           Text="{x:Bind SelectedStudentCount, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectedStudentCount, Mode=OneWay}"/>
-                                <TextBlock Grid.Column="4" VerticalAlignment="Center"
-                                           Text="{x:Bind PlannedStudentCount}" ToolTipService.ToolTip="{x:Bind PlannedStudentCount}"/>
-                                <TextBlock Grid.Column="5" VerticalAlignment="Center"
-                                           Text="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}"
-                                           ToolTipService.ToolTip="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}"
-                                           Foreground="{x:Bind IsFull, Converter={StaticResource IsFullStatusToColorConverter}, Mode=OneWay}"/>
-                                <StackPanel
-                                    Grid.Column="9" Orientation="Horizontal" Spacing="10"
-                                    Padding="0, 7, 0, 7">
-                                    <Button x:Name="ViewMoreButton" VerticalAlignment="Stretch" Content="详细信息" Click="ViewMoreButton_Click"/>
-                                    <Button VerticalAlignment="Stretch" Content="添加课程" 
-                                            IsEnabled="{x:Bind local:CourseListPage.ViewModelCache.HasCourseSelectSchedule, Mode=OneWay}"/>
-                                </StackPanel>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                    <ListView.ItemContainerStyle>
-                        <Style BasedOn="{StaticResource DefaultListViewItemStyle}"
-                               TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                </ListView>
+                <SelectorBar x:Name="TabSelectorBar" SelectionChanged="SelectorBar_SelectionChanged">
+                    <SelectorBarItem x:Name="TabBarItem1" Text="选课列表" Tag="selectable"/>
+                    <SelectorBarItem x:Name="TabBarItem2" Text="已选课程" Tag="selected"/>
+                    <SelectorBarItem x:Name="TabBarItem3" Text="选课任务" Tag="tasks"/>
+                </SelectorBar>
+                <Grid>
+                    <StackPanel x:Name="SelectableCoursesList" Visibility="Collapsed">
+                        <StackPanel Padding="16, 5, 16, 0" Spacing="10">
+                            <TextBlock Text="选课列表" FontSize="25" Margin="0, 10" ToolTipService.ToolTip="脚本小子的私密空间"/>
+                        </StackPanel>
+                        <ListView ItemsSource="{x:Bind ViewModel.SelectableCourses, Mode=OneWay}" Height="500">
+                            <ListView.Header>
+                                <Grid ColumnSpacing="16" Padding="15, 5, 13, 5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition MinWidth="100"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="35"/>
+                                        <ColumnDefinition Width="35"/>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="170" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="课程名称" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="活动描述" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="2" Text="教师" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="3" Text="已选" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="4" Text="限选" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="5" Text="状态" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="6" Text="操作" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </Grid>
+                            </ListView.Header>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CourseItem">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition MinWidth="100"/>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="35"/>
+                                            <ColumnDefinition Width="35"/>
+                                            <ColumnDefinition Width="50"/>
+                                            <ColumnDefinition Width="170" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind CourseName}" ToolTipService.ToolTip="{x:Bind}"/>
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind ActivityDescription}" ToolTipService.ToolTip="{x:Bind ActivityDescription}"/>
+                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind TeacherName}" ToolTipService.ToolTip="{x:Bind TeacherName}"/>
+                                        <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{x:Bind SelectedStudentCount, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectedStudentCount, Mode=OneWay}"/>
+                                        <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="{x:Bind PlannedStudentCount}" ToolTipService.ToolTip="{x:Bind PlannedStudentCount}"/>
+                                        <TextBlock Grid.Column="5" VerticalAlignment="Center" Text="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}" Foreground="{x:Bind IsFull, Converter={StaticResource IsFullStatusToColorConverter}, Mode=OneWay}"/>
+                                        <StackPanel Grid.Column="9" Orientation="Horizontal" Spacing="10" Padding="0, 7, 0, 7">
+                                            <Button x:Name="ViewMoreButton" VerticalAlignment="Stretch" Content="详细信息" Click="ViewMoreButton_Click"/>
+                                            <Button VerticalAlignment="Stretch" Content="添加课程"  Command="{x:Bind local:CourseListPage.ViewModelCache.AddCourseCommand}" CommandParameter="{x:Bind}" IsEnabled="{x:Bind IsOperating, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.ItemContainerStyle>
+                                <Style BasedOn="{StaticResource DefaultListViewItemStyle}" TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </StackPanel>
+                    <StackPanel x:Name="SelectedCoursesList" Visibility="Collapsed">
+                        <StackPanel Padding="16, 5, 16, 0" Spacing="10">
+                            <TextBlock Text="已选课程" FontSize="25" Margin="0, 10"/>
+                        </StackPanel>
+                        <ListView ItemsSource="{x:Bind ViewModel.SelectedCourses, Mode=OneWay}" Height="500">
+                            <ListView.Header>
+                                <Grid ColumnSpacing="16" Padding="15, 5, 13, 5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition MinWidth="100"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="35"/>
+                                        <ColumnDefinition Width="35"/>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="170" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="课程名称" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="活动描述" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="2" Text="教师" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="3" Text="已选" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="4" Text="限选" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="5" Text="状态" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="6" Text="操作" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </Grid>
+                            </ListView.Header>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CourseItem">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition MinWidth="100"/>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="35"/>
+                                            <ColumnDefinition Width="35"/>
+                                            <ColumnDefinition Width="50"/>
+                                            <ColumnDefinition Width="170" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind CourseName}" ToolTipService.ToolTip="{x:Bind}"/>
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind ActivityDescription}" ToolTipService.ToolTip="{x:Bind ActivityDescription}"/>
+                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind TeacherName}" ToolTipService.ToolTip="{x:Bind TeacherName}"/>
+                                        <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{x:Bind SelectedStudentCount, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectedStudentCount, Mode=OneWay}"/>
+                                        <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="{x:Bind PlannedStudentCount}" ToolTipService.ToolTip="{x:Bind PlannedStudentCount}"/>
+                                        <TextBlock Grid.Column="5" VerticalAlignment="Center" Text="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}" Foreground="{x:Bind IsFull, Converter={StaticResource IsFullStatusToColorConverter}, Mode=OneWay}"/>
+                                        <StackPanel Grid.Column="9" Orientation="Horizontal" Spacing="10" Padding="0, 7, 0, 7">
+                                            <Button x:Name="ViewMoreButton" VerticalAlignment="Stretch" Content="详细信息" Click="ViewMoreButton_Click"/>
+                                            <Button VerticalAlignment="Stretch" Content="添加课程" Command="{x:Bind local:CourseListPage.ViewModelCache.AddCourseCommand}" CommandParameter="{x:Bind}" IsEnabled="{x:Bind IsOperating, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                    <StackPanel x:Name="SelectTasksList" Visibility="Collapsed">
+                        <StackPanel Padding="16, 5, 16, 0" Spacing="10">
+                            <TextBlock Text="选课任务列表" FontSize="25" Margin="0, 10"/>
+                        </StackPanel>
+                        <ListView ItemsSource="{x:Bind ViewModel.SelectTasks}" Height="500">
+                            <ListView.Header>
+                                <Grid ColumnSpacing="16" Padding="15, 5, 13, 5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition MinWidth="80"/>
+                                        <ColumnDefinition MinWidth="100"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="170" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="课程名称" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="课程代码" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="2" Text="操作类型" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="3" Text="状态" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="4" Text="时间表" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="5" Text="操作" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </Grid>
+                            </ListView.Header>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CourseSelectTask">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition MinWidth="80"/>
+                                            <ColumnDefinition MinWidth="100"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="170" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind Course.CourseName}" ToolTipService.ToolTip="{x:Bind Course, Mode=OneWay}"/>
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind Course.CourseCode}" ToolTipService.ToolTip="{x:Bind Course.CourseCode}"/>
+                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind OperationType, Converter={StaticResource OperationTypeToStringConverter}}" ToolTipService.ToolTip="{x:Bind OperationType, Converter={StaticResource OperationTypeToStringConverter}}"/>
+                                        <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{x:Bind SelectStatus, Converter={StaticResource SelectStatusToStringConverter}, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectStatus, Converter={StaticResource SelectStatusToStringConverter}, Mode=OneWay}"/>
+                                        <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="{x:Bind SelectSchedule.Name, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectSchedule.ScheduleTime.ToString(), Mode=OneWay}"/>
+                                        <TextBlock Grid.Column="5" VerticalAlignment="Center" Text="操作"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.ItemContainerStyle>
+                                <Style BasedOn="{StaticResource DefaultListViewItemStyle}" TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </StackPanel>
+                </Grid>
             </StackPanel>
         </ScrollView>
     </Grid>

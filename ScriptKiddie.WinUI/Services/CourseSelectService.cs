@@ -4,6 +4,7 @@ using Microsoft.VisualBasic;
 using ScriptKiddie.WinUI.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -15,7 +16,7 @@ namespace ScriptKiddie.WinUI.Services;
 /// <summary>
 /// 选课服务。此服务类实现较复杂，并且未经实际测试验证。
 /// </summary>
-public partial class CourseSelectService : ICourseSelectService, IRecipient<SelectScheduleChangedMessage>
+public partial class CourseSelectService : ICourseSelectService, IRecipient<SelectScheduleRemoveMessage>
 {
     private readonly IHttpClientProvider httpClientProvider;
     private readonly SelectScheduleProvider selectScheduleProvider;
@@ -30,7 +31,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
     //private static readonly SemaphoreSlim _syncSemaphore = new SemaphoreSlim(1, 1);
 
-    public List<CourseSelectTask> SelectTasks { get; } = [];
+    private readonly ObservableCollection<CourseSelectTask> selectTasks = [];
 
     private const string BASE_URL = "https://jxfw.gdut.edu.cn";
     private const string CAPTCHA_PAGE_URL = BASE_URL + "/waf_text_verify.html";
@@ -167,9 +168,9 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         }
     }
 
-    public void Receive(SelectScheduleChangedMessage message)
+    public ObservableCollection<CourseSelectTask> GetSelectTasks()
     {
-        UpdateTasks();
+        return selectTasks;
     }
 
     /// <summary>
@@ -180,15 +181,15 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     /// <param name="operationType">操作类型（选课、退选）</param>
     public bool AddCourse(CourseItem course, SelectSchedule selectSchedule, OperationType operationType)
     {
-        if (SelectTasks.Any(task => task.Course.Equals(course)))
+        if (selectTasks.Any(task => task.Course.Equals(course) && (task.SelectStatus == SelectStatus.Pending || task.SelectStatus == SelectStatus.Executing)))
         {
-            logger.LogError("添加课程失败：已存在该课程的任务。");
+            ReportAddCourseError("已存在该课程的任务。");
             return false;
         }
 
         if (!selectSchedules.Contains(selectSchedule))
         {
-            logger.LogError("添加课程失败：没有找到时间表。");
+            ReportAddCourseError("没有找到时间表。");
             return false;
         }
 
@@ -196,7 +197,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         {
             if (operationType == OperationType.Select || operationType == OperationType.WithdrawToSelect)
             {
-                logger.LogError("添加课程失败：操作类型与时间表的选择方式不匹配。");
+                ReportAddCourseError("操作类型与时间表的选择方式不匹配。");
                 return false;
             }
         }
@@ -205,7 +206,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         {
             if (operationType == OperationType.Withdraw || operationType == OperationType.WithdrawToSelect)
             {
-                logger.LogError("添加课程失败：操作类型与时间表的选择方式不匹配。");
+                ReportAddCourseError("操作类型与时间表的选择方式不匹配。");
                 return false;
             }
         }
@@ -213,16 +214,64 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         var now = DateTime.Now;
         if (selectSchedule.ScheduleTime.EndTime < now)
         {
-            logger.LogError("无法关联到已经结束的时间表。");
+            ReportAddCourseError("无法关联到已经结束的时间表。");
             return false;
         }
 
         var task = new CourseSelectTask(selectSchedule, course, SelectStatus.Pending, operationType);
-        SelectTasks.Add(task);
+        selectTasks.Add(task);
 
         _ = ExcuteTask(task);
 
         return true;
+    }
+
+    /// <summary>
+    /// 添加一个与课程和时间表关联的选课任务到任务列表。
+    /// </summary>
+    /// <param name="course">要添加的课程</param>
+    /// <param name="courseToWithdraw">要替换的课程</param>
+    /// <param name="selectSchedule">要关联的时间表</param>
+    public bool AddCourse(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
+    {
+        if (selectTasks.Any(task => task.Course.Equals(course) && (task.SelectStatus == SelectStatus.Pending || task.SelectStatus == SelectStatus.Executing)))
+        {
+            ReportAddCourseError("已存在该课程的任务。");
+            return false;
+        }
+
+        if (!selectSchedules.Contains(selectSchedule))
+        {
+            ReportAddCourseError("没有找到时间表。");
+            return false;
+        }
+
+        if (selectSchedule.SelectType != SelectType.SelectAndWithdraw)
+        {
+            ReportAddCourseError("关联的时间表不支持此操作类型。");
+            return false;
+        }
+
+        var now = DateTime.Now;
+        if (selectSchedule.ScheduleTime.EndTime < now)
+        {
+            ReportAddCourseError("无法关联到已经结束的时间表。");
+            return false;
+        }
+
+        var task = new CourseSelectTask(selectSchedule, course, courseToWithdraw, SelectStatus.Pending);
+        selectTasks.Add(task);
+
+        _ = ExcuteTask(task);
+
+        return true;
+    }
+
+    private async void ReportAddCourseError(string message)
+    {
+        logger.LogError("添加课程失败：{message}", message);
+        //await Task.Delay(10);
+        WeakReferenceMessenger.Default.Send(new TaskAddFailedMessage(message));
     }
 
     /// <summary>
@@ -232,7 +281,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     public bool RemoveCourse(CourseItem course)
     {
         // 先取消，再一次性删除
-        var tasksToRemove = SelectTasks.Where(t => t.Course.Equals(course)).ToList();
+        var tasksToRemove = selectTasks.Where(t => t.Course.Equals(course)).ToList();
 
         if (tasksToRemove.Count == 0)
         {
@@ -241,23 +290,85 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         }
 
         foreach (var task in tasksToRemove)
-            task.cts.Cancel();
-
-        SelectTasks.RemoveAll(t => t.Course.Equals(course));
+        {
+            task.Cts.Cancel();
+            selectTasks.Remove(task);
+        }
 
         return true;
     }
 
-    private void UpdateTasks()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:简化集合初始化", Justification = "<挂起>")]
+    public async void Receive(SelectScheduleRemoveMessage message)
     {
-        var tasksToRemove = SelectTasks
-            .Where(task => !selectSchedules.Contains(task.SelectSchedule))
-            .ToList();
+        var changedSelectSchedules = message.ChangedSelectSchedules;
+        var tasksToRemove = new List<CourseSelectTask>();
+
+        tasksToRemove.AddRange(selectTasks.Where(task => changedSelectSchedules.Contains(task.SelectSchedule)));
+
+        var tcs = message.TaskCompletionSource;
+
+        // 接受方：CourseListPage
+        WeakReferenceMessenger.Default.Send<SelectScheduleRemoveConfirmMessage>(new SelectScheduleRemoveConfirmMessage(tasksToRemove, tcs));
+
+        if (tasksToRemove.Count == 0)
+            return;
+
+        try
+        {
+            await tcs.Task;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
 
         foreach (var task in tasksToRemove)
-            task.cts.Cancel();
+        {
+            task.Cts.Cancel();
+            selectTasks.Remove(task);
+        }
+    }
 
-        SelectTasks.RemoveAll(task => !selectSchedules.Contains(task.SelectSchedule));
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:简化集合初始化", Justification = "<挂起>")]
+    private async Task UpdateTasks(TaskCompletionSource tcs)
+    {
+        var tasksToRemove = new List<CourseSelectTask>();
+
+        tasksToRemove.AddRange(selectTasks.Where(task => !selectSchedules.Contains(task.SelectSchedule)).ToList());
+        tasksToRemove.AddRange(selectTasks.Where(task => selectedCourses?.Count < selectCountLimit && task.OperationType == OperationType.WithdrawToSelect));
+
+        WeakReferenceMessenger.Default.Send<SelectScheduleRemoveConfirmMessage>(new SelectScheduleRemoveConfirmMessage(tasksToRemove, tcs));
+
+        try
+        {
+            await tcs.Task;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        foreach (var task in tasksToRemove)
+        {
+            task.Cts.Cancel();
+            selectTasks.Remove(task);
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:简化集合初始化", Justification = "<挂起>")]
+    private void UpdateTasks()
+    {
+        var tasksToRemove = new List<CourseSelectTask>();
+
+        tasksToRemove.AddRange(selectTasks.Where(task => !selectSchedules.Contains(task.SelectSchedule)).ToList());
+        tasksToRemove.AddRange(selectTasks.Where(task => selectedCourses?.Count < selectCountLimit && task.OperationType == OperationType.WithdrawToSelect));
+
+        foreach (var task in tasksToRemove)
+        {
+            task.Cts.Cancel();
+            selectTasks.Remove(task);
+        }
     }
 
     private async Task ExcuteTask(CourseSelectTask task)
@@ -272,12 +383,12 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
                 var time = task.SelectSchedule.ScheduleTime.StartTime.AddSeconds(-3) - now;
                 logger.LogInformation("等待 {Seconds} 执行选课任务。", time.TotalSeconds);
                 task.SelectStatus = SelectStatus.Pending;
-                await Task.Delay(time, task.cts.Token);
+                await Task.Delay(time, task.Cts.Token);
 
                 if (task.OperationType == OperationType.Select)
                 {
                     task.SelectStatus = SelectStatus.Executing;
-                    if (await HighSpeedRequest(task.Course, task.cts.Token))
+                    if (await ConcurrentRequest(task.Course, task.Cts.Token))
                         task.SelectStatus = SelectStatus.Completed;
                 }
                 else
@@ -287,16 +398,22 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
                     if (task.OperationType == OperationType.Withdraw)
                     {
-                        if (await LowSpeedRequest(task.Course, task.OperationType, task.cts.Token))
+                        if (await SequentialRequest(task.Course, task.OperationType, task.Cts.Token))
+                        {
                             task.SelectStatus = SelectStatus.Completed;
+                            await RefreshSelectedCoursesAsync(CancellationToken.None);
+                        }
                     }
                     else if (task.OperationType == OperationType.WithdrawToSelect)
                     {
                         if (task.CourseToWithdraw == null)
                             throw new NullReferenceException(nameof(task.CourseToWithdraw));
 
-                        if (await WaitForRefreshThenCheck(task.CourseToWithdraw, task.Course, task.cts.Token))
+                        if (await WaitForRefreshThenCheck(task.CourseToWithdraw, task.Course, task.Cts.Token))
+                        {
                             task.SelectStatus = SelectStatus.Completed;
+                            await RefreshSelectedCoursesAsync(CancellationToken.None);
+                        }
                     }
                 }
             }
@@ -308,16 +425,22 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
                 if (task.OperationType == OperationType.Select || task.OperationType == OperationType.Withdraw)
                 {
-                    if (await LowSpeedRequest(task.Course, task.OperationType, task.cts.Token))
+                    if (await SequentialRequest(task.Course, task.OperationType, task.Cts.Token))
+                    {
                         task.SelectStatus = SelectStatus.Completed;
+                        await RefreshSelectedCoursesAsync(CancellationToken.None);
+                    }
                 }
                 else if (task.OperationType == OperationType.WithdrawToSelect)
                 {
                     if (task.CourseToWithdraw == null)
                         throw new NullReferenceException(nameof(task.CourseToWithdraw));
 
-                    if (await WaitForRefreshThenCheck(task.CourseToWithdraw, task.Course, task.cts.Token))
+                    if (await WaitForRefreshThenCheck(task.CourseToWithdraw, task.Course, task.Cts.Token))
+                    {
                         task.SelectStatus = SelectStatus.Completed;
+                        await RefreshSelectedCoursesAsync(CancellationToken.None);
+                    }
                 }
             }
         }
@@ -372,15 +495,45 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         return false;
     }
 
-    private async Task<bool> TryWithdrawAndSelect(CourseItem withdrawCourse, CourseItem selectCourse, CancellationToken cancellationToken)
+    private async Task<bool> TryWithdrawAndSelect(CourseItem courseToWithdraw, CourseItem selectCourse, CancellationToken cancellationToken)
     {
-        if (!await LowSpeedRequest(withdrawCourse, OperationType.Withdraw, cancellationToken, 5))
+        if (!await SequentialRequest(courseToWithdraw, OperationType.Withdraw, cancellationToken, 5))
         {
-            logger.LogError("退选 {Course} 失败。请检查错误信息。", withdrawCourse);
+            logger.LogError("退选 {Course} 失败。请检查错误信息。", courseToWithdraw);
             return false;
         }
 
-        return await LowSpeedRequest(selectCourse, OperationType.Select, cancellationToken, 5);
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(4));
+
+        bool selectSuccess = false;
+        try
+        {
+            selectSuccess = await ConcurrentRequest(selectCourse, cts.Token, 50, 50, 5);
+        }
+        catch (OperationCanceledException)
+        {
+            // 超时（4 秒到了）或外部取消
+            logger.LogError("抢课超时（4 秒），或任务被取消。准备回滚...");
+            selectSuccess = false;
+        }
+
+        if (!selectSuccess)
+        {
+            logger.LogWarning("退选成功，但抢课失败（超时/网络/其他）。尝试选回原有课程...");
+
+            if (!await SequentialRequest(courseToWithdraw, OperationType.Select, CancellationToken.None, 5, 100))
+            {
+                logger.LogError("警告：原有课程选择失败！（这个情况应该不会发生吧。如果发生了...那不能怪我，是你自己要用的。嘻嘻~~）");
+                return false;
+            }
+
+            logger.LogInformation("成功选回原有课程。");
+            return false;
+        }
+
+        logger.LogInformation("成功退选并选择目标课程。");
+        return true;
     }
 
     /// <summary>
@@ -477,7 +630,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     //        }
     //        else
     //        {
-    //            if (!await LowSpeedRequest(courseToWithdraw, OperationType.Withdraw, cancellationToken))
+    //            if (!await SequentialRequest(courseToWithdraw, OperationType.Withdraw, cancellationToken))
     //            {
     //                logger.LogError("没有退选成功。");
     //                return false;
@@ -485,7 +638,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
     //            logger.LogInformation("成功退选课程：{Course}", courseToWithdraw.ToString());
 
-    //            if (await LowSpeedRequest(course, OperationType.Select, cancellationToken))
+    //            if (await SequentialRequest(course, OperationType.Select, cancellationToken))
     //            {
     //                logger.LogInformation("成功选择课程：{Course}", course.ToString());
     //            }
@@ -500,7 +653,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     //}
 
     /// <summary>
-    /// 发送高频请求。仅选课。
+    /// 发送并发的高频请求。仅选课。
     /// </summary>
     /// <param name="course"></param>
     /// <param name="cancellationToken"></param>
@@ -508,7 +661,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     /// <param name="maxConcurrency"></param>
     /// <param name="maxAttempts"></param>
     /// <returns></returns>
-    private async Task<bool> HighSpeedRequest(CourseItem course, CancellationToken cancellationToken, int interval = 15, int maxConcurrency = 5, int maxAttempts = 700)
+    private async Task<bool> ConcurrentRequest(CourseItem course, CancellationToken cancellationToken, int maxAttempts = 700, int interval = 15, int maxConcurrency = 5)
     {
         logger.LogInformation("开始高频并发选课：{Course}，并发数 {Concurrency}，启动间隔 {Interval}ms，总上限 {MaxAttempts}", course.ToString(), maxConcurrency, interval, maxAttempts);
 
@@ -592,7 +745,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     }
 
     /// <summary>
-    /// 发送低频请求。选课与退选。
+    /// 发送连续的低频请求。选课与退选。
     /// </summary>
     /// <param name="course">要操作的课程</param>
     /// <param name="operationType">操作方式（选课、退选）</param>
@@ -601,7 +754,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     /// <param name="interval">请求间隔</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    private async Task<bool> LowSpeedRequest(CourseItem course, OperationType operationType, CancellationToken cancellationToken, int countLimit = 0, int interval = 2000)
+    private async Task<bool> SequentialRequest(CourseItem course, OperationType operationType, CancellationToken cancellationToken, int countLimit = 0, int interval = 2000)
     {
         if (countLimit < 0)
             throw new ArgumentException("限制次数不能小于零：" + countLimit);

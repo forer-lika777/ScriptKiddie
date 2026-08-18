@@ -1,10 +1,12 @@
 ﻿using ScriptKiddie.WinUI.Models;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ScriptKiddie.WinUI;
 
 // Account management
 
-public record AccountInfoChangedMessage(AccountInfo value);
+public record AccountInfoChangedMessage(AccountInfo Value);
 
 public record LoginSuccessMessage();
 
@@ -14,4 +16,16 @@ public record NeedCaptchaMessage();
 
 // Select schedules management
 
-public record SelectScheduleChangedMessage();
+public record SelectScheduleAddedMessage();
+
+public record SelectScheduleRemoveMessage(IEnumerable<SelectSchedule> ChangedSelectSchedules, TaskCompletionSource TaskCompletionSource);
+
+public record SelectScheduleRemoveConfirmMessage(List<CourseSelectTask> ChangedCourseSelectTasks, TaskCompletionSource TaskCompletionSource);
+
+public record RequestChooseSelectScheduleMessage(TaskCompletionSource<SelectSchedule> TaskCompletionSource);
+
+public record RequestConfirmWithdrawCourseMessage(TaskCompletionSource<CourseItem> TaskCompletionSource);
+
+// Select tasks management
+
+public record TaskAddFailedMessage(string Info);
