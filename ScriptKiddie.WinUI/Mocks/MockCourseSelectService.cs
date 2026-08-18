@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Logging;
 using ScriptKiddie.WinUI.Models;
 using ScriptKiddie.WinUI.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -10,20 +12,24 @@ using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Mocks;
 
-public class MockCourseSelectService : ICourseSelectService
+public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectScheduleRemoveMessage>
 {
-    private readonly HttpClientProvider httpClientProvider;
+    private readonly IHttpClientProvider httpClientProvider;
     private readonly ILogger<MockCourseSelectService> logger;
+    private readonly SelectScheduleProvider selectScheduleProvider;
 
     private CourseResponse? selectableCourses = null;
     private List<CourseItem>? selectedCourses = null;
 
+    private ObservableCollection<CourseSelectTask> selectTasks = [];
+
     private CancellationTokenSource? cancellationTokenSource;
 
-    public MockCourseSelectService(HttpClientProvider httpClientProvider, ILogger<MockCourseSelectService> logger)
+    public MockCourseSelectService(IHttpClientProvider httpClientProvider, ILogger<MockCourseSelectService> logger, SelectScheduleProvider selectScheduleProvider)
     {
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
+        this.selectScheduleProvider = selectScheduleProvider;
         SetSelectableCourses();
         SetSelectedCourses();
     }
@@ -91,6 +97,7 @@ public class MockCourseSelectService : ICourseSelectService
                         completed = false;
                     }
                 }
+
                 if (completed)
                     return;
             }
@@ -138,5 +145,30 @@ public class MockCourseSelectService : ICourseSelectService
         cts?.Cancel();
         cts?.Dispose();
         cts = null;
+    }
+
+    public bool AddCourse(CourseItem course, SelectSchedule selectSchedule, OperationType operationType)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool RemoveCourse(CourseItem course)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ObservableCollection<CourseSelectTask> GetSelectTasks()
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool AddCourse(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Receive(SelectScheduleRemoveMessage message)
+    {
+        
     }
 }
