@@ -17,6 +17,10 @@
             <converters:BoolToReversedVisibilityConverter x:Key="BoolToReversedVisibilityConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
 
+            <converters:SelectStatusToStringConverter x:Key="SelectStatusToStringConverter"/>
+            <converters:SelectTypeToStringConverter x:Key="SelectTypeToStringConverter"/>
+            <converters:OperationTypeToStringConverter x:Key="OperationTypeToStringConverter"/>
+
             <FontFamily x:Key="ContentControlThemeFontFamily">Microsoft YaHei UI</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
