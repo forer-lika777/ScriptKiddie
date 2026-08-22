@@ -36,9 +36,15 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
         ViewModelCache = ViewModel = App.Current.Services.GetRequiredService<CourseListPageModel>();
         navigationService = App.Current.Services.GetRequiredService<NavigationService>();
         logger = App.Current.Services.GetRequiredService<ILogger<CourseListPage>>();
-        //WeakReferenceMessenger.Default.Register<SelectScheduleRemoveConfirmMessage>(this);
+
+        if (!WeakReferenceMessenger.Default.IsRegistered<RequestChooseSelectScheduleMessage>(this))
         WeakReferenceMessenger.Default.Register<RequestChooseSelectScheduleMessage>(this);
+
+        if (!WeakReferenceMessenger.Default.IsRegistered<TaskAddFailedMessage>(this))
         WeakReferenceMessenger.Default.Register<TaskAddFailedMessage>(this);
+
+        if (!WeakReferenceMessenger.Default.IsRegistered<RequestConfirmWithdrawCourseMessage>(this))
+            WeakReferenceMessenger.Default.Register<RequestConfirmWithdrawCourseMessage>(this);
 
         compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
         rootVisual = ElementCompositionPreview.GetElementVisual(this);
@@ -51,9 +57,6 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
         base.OnNavigatedFrom(e);
         // 离开时将存储的静态值设置为 null，以匹配页面的生命周期
         ViewModelCache = null!;
-        // 订阅多次会重复发消息，要取消订阅
-        WeakReferenceMessenger.Default.Unregister<RequestChooseSelectScheduleMessage>(this);
-        WeakReferenceMessenger.Default.Unregister<TaskAddFailedMessage>(this);
     }
 
     private async void ViewMoreButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

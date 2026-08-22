@@ -58,7 +58,9 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         this.logger = logger;
         this.selectScheduleProvider = selectScheduleProvider;
         selectSchedules = selectScheduleProvider.SelectSchedules;
-        WeakReferenceMessenger.Default.Register(this);
+
+        if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleRemoveMessage>(this))
+            WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
     }
 
     public async Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken)

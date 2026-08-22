@@ -25,14 +25,11 @@ public sealed partial class SelectSchedulePage : Page, IRecipient<SelectSchedule
         courseSelectService = App.Current.Services.GetRequiredService<ICourseSelectService>();
         selectScheduleProvider = App.Current.Services.GetRequiredService<SelectScheduleProvider>();
         ViewModel = App.Current.Services.GetRequiredService<SelectSchedulePageModel>();
-        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveConfirmMessage>(this);
-        RefreshCommandButtonStatus();
-    }
 
-    protected override void OnNavigatedFrom(NavigationEventArgs e)
-    {
-        // 订阅多次会重复发消息，要取消订阅
-        WeakReferenceMessenger.Default.Unregister<SelectScheduleRemoveConfirmMessage>(this);
+        if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleRemoveConfirmMessage>(this))
+        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveConfirmMessage>(this);
+
+        RefreshCommandButtonStatus();
     }
 
     private void AddButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

@@ -18,7 +18,8 @@ public partial class AccountManagePageModel : ObservableObject, IRecipient<Accou
         this.accountManageService = accountManageService;
         this.appSettingsService = appSettingsService;
 
-        WeakReferenceMessenger.Default.Register(this);
+        if (!WeakReferenceMessenger.Default.IsRegistered<AccountInfoChangedMessage>(this))
+            WeakReferenceMessenger.Default.Register<AccountInfoChangedMessage>(this);
 
         RefreshAccountInfo(accountManageService.GetAccountInfo());
     }

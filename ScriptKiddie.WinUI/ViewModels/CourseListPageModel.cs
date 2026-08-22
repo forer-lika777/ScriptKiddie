@@ -22,7 +22,10 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
         SelectSchedules = selectScheduleProvider.SelectSchedules;
         SelectTasks = courseSelectService.GetSelectTasks();
         _ = SyncCoursesContent();
+        if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleAddedMessage>(this))
         WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
+
+        if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleRemoveMessage>(this))
         WeakReferenceMessenger.Default.Register<SelectScheduleAddedMessage>(this);
     }
 
