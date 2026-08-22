@@ -14,8 +14,6 @@ public sealed partial class LoginPage : Page
     {
         InitializeComponent();
         ViewModel = App.Current.Services.GetRequiredService<LoginPageModel>();
-
-        TextBox textBox = new TextBox();
     }
 
     private void UserNameTextBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
