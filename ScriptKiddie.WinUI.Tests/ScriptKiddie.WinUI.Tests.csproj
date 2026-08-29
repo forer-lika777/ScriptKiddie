@@ -9,7 +9,7 @@
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
-    <WinUIDSKReferences>false</WinUIDSKReferences>
+    <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>false</EnableMsixTooling>
     <Nullable>enable</Nullable>
 	<SelfContained>true</SelfContained>
@@ -68,6 +68,7 @@
   <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)'=='Debug_Unpackaged'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed>False</PublishTrimmed>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

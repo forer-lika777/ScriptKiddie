@@ -42,6 +42,7 @@ public sealed partial class LoginPage : Page
                     ViewModel.LoginCommand.Execute(null);
                 }
             }
+
             e.Handled = true;
         }
     }
@@ -54,6 +55,7 @@ public sealed partial class LoginPage : Page
             {
                 ViewModel.LoginCommand.Execute(null);
             }
+
             e.Handled = true;
         }
     }

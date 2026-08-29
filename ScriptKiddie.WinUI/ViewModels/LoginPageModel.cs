@@ -10,7 +10,7 @@ namespace ScriptKiddie.WinUI.ViewModels;
 
 public partial class LoginPageModel : ObservableObject
 {
-    private readonly AccountManageService accountManageService;
+    private readonly IAccountManageService accountManageService;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(UserNameError))]
@@ -52,6 +52,7 @@ public partial class LoginPageModel : ObservableObject
             beenValidFlag = true;
             return new ValidationErrorStatus();
         }
+
         return beenValidFlag ? new ValidationErrorStatus(error) : new ValidationErrorStatus();
     }
 
@@ -88,7 +89,7 @@ public partial class LoginPageModel : ObservableObject
 
     private bool CanLogin() => UserNameError.Success && PasswordError.Success && CaptchaError.Success && userNameBeenValid && passwordBeenValid && captchaBeenValid;
 
-    public LoginPageModel(AccountManageService accountManageService)
+    public LoginPageModel(IAccountManageService accountManageService)
     {
         this.accountManageService = accountManageService;
     }
@@ -110,7 +111,7 @@ public partial class LoginPageModel : ObservableObject
 
         if (result.Success)
         {
-            WeakReferenceMessenger.Default.Send(new LoginSuccessMessage());
+            WeakReferenceMessenger.Default.Send(new UpdateLoginStatusMessage(true));
             return;
         }
 

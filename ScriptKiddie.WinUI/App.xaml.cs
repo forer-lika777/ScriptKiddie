@@ -58,7 +58,6 @@ public partial class App : Application
 
         AddServices(services);
         AddViewModels(services);
-        AddViews(services);
         AddLogger(services);
 
         return services.BuildServiceProvider();
@@ -67,6 +66,7 @@ public partial class App : Application
     private static void AddViewModels(ServiceCollection services)
     {
         services.AddSingleton<CourseListPageModel>();
+        services.AddSingleton<MainPageModel>();
         services.AddSingleton<MainWindowModel>();
         services.AddTransient<LoginPageModel>();
         services.AddSingleton<AccountManagePageModel>();
@@ -93,14 +93,9 @@ public partial class App : Application
         }
 
         services.AddSingleton<ICourseSelectService, CourseSelectService>();
-        services.AddSingleton<AccountManageService>();
+        services.AddSingleton<IAccountManageService, AccountManageService>();
 
         services.AddSingleton<NavigationService>();
-    }
-
-    private static void AddViews(ServiceCollection services)
-    {
-        services.AddSingleton<MainWindow>();
     }
 
     private static void AddLogger(ServiceCollection services)
@@ -123,7 +118,7 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
-        window = Current.Services.GetRequiredService<MainWindow>();
+        window = new MainWindow();
         window.Activate();
     }
 }

@@ -13,10 +13,9 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
 	<LangVersion>14</LangVersion>
-	<PublishAot>true</PublishAot>
-	<IsAotCompatible>true</IsAotCompatible>
 	<SelfContained>true</SelfContained>
 	<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+	<WindowsPackageType>None</WindowsPackageType>
   </PropertyGroup>
   <ItemGroup Condition="'$(Configuration)' != 'Debug'">
     <Compile Remove="Mocks\**\*.cs" />
@@ -27,6 +26,7 @@
     <Content Remove="Assets\winui-hero.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Assets\100066396_p0.png" />
     <None Remove="MainPage.xaml" />
     <None Remove="Pages\AccontManagePage.xaml" />
     <None Remove="Pages\Controls\CourseInfoPanel.xaml" />
@@ -34,8 +34,8 @@
     <None Remove="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml" />
     <None Remove="Pages\Controls\SelectScheduleEditPanel.xaml" />
     <None Remove="Pages\Controls\SelectScheduleSelectPanel.xaml" />
-    <None Remove="Pages\LoginPage.xaml" />
     <None Remove="Pages\SelectSchedulePage.xaml" />
+    <None Remove="Pages\WelcomePage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,12 +69,14 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +88,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="Assets\100066396_p0.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources\Localization\AccountServiceStr.resx">
@@ -106,6 +113,9 @@
     <None Update="Mocks\Data\SelectableCoursesData.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="Pages\WelcomePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -152,13 +162,32 @@
 
   <!-- Publish Properties -->
   <PropertyGroup>
-	<PublishAot Condition="'$(Configuration)' != 'Debug'">True</PublishAot>
+	<IsAotCompatible>true</IsAotCompatible>
+  
+    <!-- 只在 Release 发布时开启 AOT 和剪裁，Debug 调试/测试时绝对关闭 -->
+    <PublishAot Condition="'$(Configuration)' != 'Debug'">True</PublishAot>
+    <PublishAot Condition="'$(Configuration)' == 'Debug'">True</PublishAot>
+    <PublishAot Condition="'$(Configuration)'=='Debug_Unpackaged'">True</PublishAot>
+  
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
+  
+    <PublishReadyToRun Condition="'$(Configuration)'=='Debug_Unpackaged'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
+  
+    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">True</PublishTrimmed>
+  
+    <PublishTrimmed Condition="'$(Configuration)'=='Debug_Unpackaged'">True</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+  
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Unpackaged|x86'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" />
 </Project>

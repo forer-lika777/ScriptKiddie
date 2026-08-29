@@ -126,9 +126,11 @@ public partial class CourseSelectServiceTests
 
         var course = new CourseItem("12345678", "何意味何意味何意味", "23333333");
 
-        courseSelectService?.AddCourse(course, schedule, OperationType.Select);
+        courseSelectService?.AddCourseAsync(course, schedule, OperationType.Select);
 
-        var task = courseSelectService?.SelectTasks[courseSelectService.SelectTasks.Count - 1];
+        var tasks = courseSelectService?.GetSelectTasks();
+
+        var task = tasks![tasks.Count - 1];
 
         Assert.AreEqual(SelectStatus.Pending, task?.SelectStatus);
 
@@ -148,9 +150,11 @@ public partial class CourseSelectServiceTests
 
         var course = new CourseItem("12345678", "何意味何意味何意味", "23333333");
 
-        courseSelectService?.AddCourse(course, schedule, OperationType.Withdraw);
+        courseSelectService?.AddCourseAsync(course, schedule, OperationType.Withdraw);
 
-        var task = courseSelectService?.SelectTasks[courseSelectService.SelectTasks.Count - 1];
+        var tasks = courseSelectService?.GetSelectTasks();
+
+        var task = tasks![tasks.Count - 1];
 
         Assert.AreEqual(SelectStatus.Pending, task?.SelectStatus);
 
@@ -172,9 +176,11 @@ public partial class CourseSelectServiceTests
 
         var course = new CourseItem("12345678", "何意味何意味何意味", "23333333");
 
-        courseSelectService?.AddCourse(course, schedule, operationType);
+        courseSelectService?.AddCourseAsync(course, schedule, OperationType.Withdraw);
 
-        var task = courseSelectService?.SelectTasks[courseSelectService.SelectTasks.Count - 1];
+        var tasks = courseSelectService?.GetSelectTasks();
+
+        var task = tasks![tasks.Count - 1];
 
         Assert.AreEqual(SelectStatus.Executing, task?.SelectStatus);
 
@@ -202,7 +208,7 @@ public partial class CourseSelectServiceTests
         var course = new CourseItem("12345678", "何意味何意味何意味", "23333333");
 
         // Act
-        bool actual = courseSelectService!.AddCourse(course, schedule, operationType);
+        bool actual = await courseSelectService!.AddCourseAsync(course, schedule, operationType);
 
         // Assert
         Assert.AreEqual(expected, actual);

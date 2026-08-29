@@ -10,16 +10,15 @@ namespace ScriptKiddie.WinUI.ViewModels;
 
 public partial class AccountManagePageModel : ObservableObject, IRecipient<AccountInfoChangedMessage>
 {
-    private readonly AccountManageService accountManageService;
+    private readonly IAccountManageService accountManageService;
     private readonly IAppSettingsService appSettingsService;
 
-    public AccountManagePageModel(AccountManageService accountManageService, IAppSettingsService appSettingsService)
+    public AccountManagePageModel(IAccountManageService accountManageService, IAppSettingsService appSettingsService)
     {
         this.accountManageService = accountManageService;
         this.appSettingsService = appSettingsService;
 
-        if (!WeakReferenceMessenger.Default.IsRegistered<AccountInfoChangedMessage>(this))
-            WeakReferenceMessenger.Default.Register<AccountInfoChangedMessage>(this);
+        WeakReferenceMessenger.Default.Register<AccountInfoChangedMessage>(this);
 
         RefreshAccountInfo(accountManageService.GetAccountInfo());
     }
@@ -39,6 +38,7 @@ public partial class AccountManagePageModel : ObservableObject, IRecipient<Accou
     {
         if (accountInfo is null)
             return;
+
         AccountName = accountInfo.AccountName;
         AccountId = accountInfo.AccountId;
     }
@@ -49,8 +49,7 @@ public partial class AccountManagePageModel : ObservableObject, IRecipient<Accou
         if (await accountManageService.LogoutAsync())
         {
             appSettingsService.IsLoggedIn.Value = false;
-            var mainWindowModel = App.Current.Services.GetRequiredService<MainWindowModel>();
-            mainWindowModel.IsLoggedIn = false;
+            WeakReferenceMessenger.Default.Send<UpdateLoginStatusMessage>(new UpdateLoginStatusMessage(false));
         }
     }
 }

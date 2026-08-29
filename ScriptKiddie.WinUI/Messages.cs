@@ -1,5 +1,6 @@
 ﻿using ScriptKiddie.WinUI.Models;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI;
@@ -8,7 +9,7 @@ namespace ScriptKiddie.WinUI;
 
 public record AccountInfoChangedMessage(AccountInfo Value);
 
-public record LoginSuccessMessage();
+public record UpdateLoginStatusMessage(bool IsLoggedIn);
 
 public record AutoLoginFailedNeedCaptchaMessage();
 
@@ -24,7 +25,7 @@ public record SelectScheduleRemoveConfirmMessage(List<CourseSelectTask> ChangedC
 
 public record RequestChooseSelectScheduleMessage(TaskCompletionSource<SelectSchedule> TaskCompletionSource);
 
-public record RequestConfirmWithdrawCourseMessage(TaskCompletionSource<CourseItem> TaskCompletionSource);
+public record RequestConfirmWithdrawCourseMessage(ObservableCollection<CourseItem> SelectedCourses, TaskCompletionSource<CourseItem> TaskCompletionSource);
 
 // Select tasks management
 

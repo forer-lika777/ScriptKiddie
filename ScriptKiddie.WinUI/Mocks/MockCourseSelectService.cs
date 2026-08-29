@@ -19,7 +19,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
     private readonly SelectScheduleProvider selectScheduleProvider;
 
     private CourseResponse? selectableCourses = null;
-    private List<CourseItem>? selectedCourses = null;
+    private ObservableCollection<CourseItem>? selectedCourses = null;
 
     private ObservableCollection<CourseSelectTask> selectTasks = [];
 
@@ -43,7 +43,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
     private void SetSelectedCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectedCoursesData.json"));
-        selectedCourses = (List<CourseItem>?)JsonSerializer.Deserialize(content, typeof(List<CourseItem>), CourseItemListJsonContext.Default);
+        selectedCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
     }
 
     public Task AddCourseSelectPlan(CourseItem course, DateTime openTime, CancellationToken cancellationToken, int interval = 2000)
@@ -65,7 +65,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
         }
     }
 
-    public async Task<List<CourseItem>?> GetSelectedCoursesAsync(CancellationToken cancellationToken)
+    public async Task<ObservableCollection<CourseItem>?> GetSelectedCoursesAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -81,31 +81,31 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
 
     private async Task SimulateSelectedCountChanged(CancellationToken cancellationToken)
     {
-        try
-        {
-            while (true)
-            {
-                bool completed = true;
-                await Task.Delay(1500, cancellationToken);
-                foreach (var course in selectableCourses!.Rows)
-                {
-                    if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
-                    {
-                        int count = int.Parse(course.SelectedStudentCount!);
-                        count++;
-                        course.SelectedStudentCount = count.ToString();
-                        completed = false;
-                    }
-                }
+        //try
+        //{
+        //    while (true)
+        //    {
+        //        bool completed = true;
+        //        await Task.Delay(1500, cancellationToken);
+        //        foreach (var course in selectableCourses!.Rows)
+        //        {
+        //            if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
+        //            {
+        //                int count = int.Parse(course.SelectedStudentCount!);
+        //                count++;
+        //                course.SelectedStudentCount = count.ToString();
+        //                completed = false;
+        //            }
+        //        }
 
-                if (completed)
-                    return;
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogInformation("请求已终止。");
-        }
+        //        if (completed)
+        //            return;
+        //    }
+        //}
+        //catch (OperationCanceledException)
+        //{
+        //    logger.LogInformation("请求已终止。");
+        //}
     }
 
     public async Task<int?> GetSelectLimitCountAsync(CancellationToken cancellationToken)
@@ -147,7 +147,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
         cts = null;
     }
 
-    public bool AddCourse(CourseItem course, SelectSchedule selectSchedule, OperationType operationType)
+    public async Task<bool> AddCourseAsync(CourseItem course, SelectSchedule selectSchedule, OperationType operationType)
     {
         throw new NotImplementedException();
     }
@@ -162,7 +162,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
         throw new NotImplementedException();
     }
 
-    public bool AddCourse(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
+    public async Task<bool> AddCourseAsync(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
     {
         throw new NotImplementedException();
     }

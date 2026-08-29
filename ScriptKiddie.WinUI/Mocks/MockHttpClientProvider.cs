@@ -4,6 +4,7 @@ using ScriptKiddie.WinUI.Models;
 using ScriptKiddie.WinUI.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -20,7 +21,7 @@ public class MockHttpClientProvider : IHttpClientProvider
 
     private CookieCollection cookies = [];
     private CourseResponse? selectableCourses = null;
-    private List<CourseItem>? selectedCourses = null;
+    private ObservableCollection<CourseItem>? selectedCourses = null;
 
     public MockHttpClientProvider(ILogger<MockHttpClientProvider> logger)
     {
@@ -39,36 +40,36 @@ public class MockHttpClientProvider : IHttpClientProvider
     private void SetSelectedCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectedCoursesData.json"));
-        selectedCourses = (List<CourseItem>?)JsonSerializer.Deserialize(content, typeof(List<CourseItem>), CourseItemListJsonContext.Default);
+        selectedCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
     }
 
     private async Task SimulateSelectedCountChanged(CancellationToken cancellationToken)
     {
-        try
-        {
-            while (true)
-            {
-                bool completed = true;
-                await Task.Delay(1500, cancellationToken);
-                foreach (var course in selectableCourses!.Rows)
-                {
-                    if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
-                    {
-                        int count = int.Parse(course.SelectedStudentCount!);
-                        count++;
-                        course.SelectedStudentCount = count.ToString();
-                        completed = false;
-                    }
-                }
+        //try
+        //{
+        //    while (true)
+        //    {
+        //        bool completed = true;
+        //        await Task.Delay(1500, cancellationToken);
+        //        foreach (var course in selectableCourses!.Rows)
+        //        {
+        //            if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
+        //            {
+        //                int count = int.Parse(course.SelectedStudentCount!);
+        //                count++;
+        //                course.SelectedStudentCount = count.ToString();
+        //                completed = false;
+        //            }
+        //        }
 
-                if (completed)
-                    return;
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogInformation("请求已终止。");
-        }
+        //        if (completed)
+        //            return;
+        //    }
+        //}
+        //catch (OperationCanceledException)
+        //{
+        //    logger.LogInformation("请求已终止。");
+        //}
     }
 
     public async Task<int> FetchCourseSelectLimitCountAsync(CancellationToken cancellationToken)
@@ -83,7 +84,7 @@ public class MockHttpClientProvider : IHttpClientProvider
         return selectableCourses!;
     }
 
-    public async Task<List<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken)
+    public async Task<ObservableCollection<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken)
     {
         await Task.Delay(1000, cancellationToken);
         return selectedCourses!;
@@ -115,6 +116,14 @@ public class MockHttpClientProvider : IHttpClientProvider
                     return new HttpResponseMessage
                     {
                         Content = new StringContent("不允许选课")
+                    };
+                }
+
+                if (selectedCourses!.Contains(course))
+                {
+                    return new HttpResponseMessage
+                    {
+                        Content = new StringContent("您已经选了该门课程")
                     };
                 }
 
@@ -151,6 +160,8 @@ public class MockHttpClientProvider : IHttpClientProvider
                         Content = new StringContent("不允许退选")
                     };
                 }
+
+                selectedCourses!.Remove(course);
 
                 return new HttpResponseMessage
                 {

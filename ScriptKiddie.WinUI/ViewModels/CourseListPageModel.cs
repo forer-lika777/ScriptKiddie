@@ -12,20 +12,18 @@ namespace ScriptKiddie.WinUI.ViewModels;
 
 public partial class CourseListPageModel : ObservableObject, IRecipient<SelectScheduleRemoveMessage>, IRecipient<SelectScheduleAddedMessage>
 {
-    private readonly AccountManageService accountManageService;
+    private readonly IAccountManageService accountManageService;
     private readonly SelectScheduleProvider selectScheduleProvider;
 
-    public CourseListPageModel(ICourseSelectService courseSelectService, AccountManageService accountManageService, SelectScheduleProvider selectScheduleProvider)
+    public CourseListPageModel(ICourseSelectService courseSelectService, IAccountManageService accountManageService, SelectScheduleProvider selectScheduleProvider)
     {
         this.accountManageService = accountManageService;
         this.selectScheduleProvider = selectScheduleProvider;
         SelectSchedules = selectScheduleProvider.SelectSchedules;
         SelectTasks = courseSelectService.GetSelectTasks();
         _ = SyncCoursesContent();
-        if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleAddedMessage>(this))
-        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
 
-        if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleRemoveMessage>(this))
+        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
         WeakReferenceMessenger.Default.Register<SelectScheduleAddedMessage>(this);
     }
 
@@ -62,10 +60,10 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     public partial List<CourseItem> SelectableCourses { get; set; } = [];
 
     [ObservableProperty]
-    public partial List<CourseItem> SelectedCourses { get; set; } = [];
+    public partial ObservableCollection<CourseItem> SelectedCourses { get; set; } = [];
 
-    [ObservableProperty]
-    public partial List<CourseItem> PreSelectCourses { get; set; } = [];
+    //[ObservableProperty]
+    //public partial List<CourseItem> PreSelectCourses { get; set; } = [];
 
     [ObservableProperty]
     public partial ObservableCollection<SelectSchedule> SelectSchedules { get; set; } = [];
@@ -164,7 +162,7 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
         if (SelectedCourses.Count >= SelectLimitCount)
         {
             var confirmCourseTcs = new TaskCompletionSource<CourseItem>();
-            WeakReferenceMessenger.Default.Send<RequestConfirmWithdrawCourseMessage>(new RequestConfirmWithdrawCourseMessage(confirmCourseTcs));
+            WeakReferenceMessenger.Default.Send<RequestConfirmWithdrawCourseMessage>(new RequestConfirmWithdrawCourseMessage(SelectedCourses, confirmCourseTcs));
 
             CourseItem? courseToWithdraw;
 
@@ -180,11 +178,11 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
             if (courseToWithdraw is null)
                 return;
 
-            accountManageService.AddCourse(course, courseToWithdraw, schedule);
+            await accountManageService.AddCourseAsync(course, courseToWithdraw, schedule);
         }
         else
         {
-            accountManageService.AddCourse(course, schedule, OperationType.Select);
+            await accountManageService.AddCourseAsync(course, schedule, OperationType.Select);
         }
     }
 
@@ -208,6 +206,6 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
         if (schedule is null)
             return;
 
-        accountManageService.AddCourse(course, schedule, OperationType.Withdraw);
+        await accountManageService.AddCourseAsync(course, schedule, OperationType.Withdraw);
     }
 }

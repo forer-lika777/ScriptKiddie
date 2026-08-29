@@ -7,8 +7,8 @@ public partial class ValidationErrorStatus : ObservableObject
 {
     public ValidationErrorStatus(string? message = null)
     {
-        Message = message ?? string.Empty;
-        Success = string.IsNullOrWhiteSpace(message);
+        this.Message = message ?? string.Empty;
+        this.Success = string.IsNullOrWhiteSpace(message);
     }
 
     [ObservableProperty]

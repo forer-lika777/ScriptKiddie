@@ -11,11 +11,12 @@ using ScriptKiddie.WinUI.Pages.Controls;
 using ScriptKiddie.WinUI.Services;
 using ScriptKiddie.WinUI.ViewModels;
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Pages;
 
-public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelectScheduleMessage>, IRecipient<TaskAddFailedMessage>
+public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelectScheduleMessage>, IRecipient<TaskAddFailedMessage>, IRecipient<RequestConfirmWithdrawCourseMessage>
 {
     private readonly NavigationService navigationService;
     private readonly ILogger<CourseListPage> logger;
@@ -39,7 +40,7 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
 
         WeakReferenceMessenger.Default.Register<RequestChooseSelectScheduleMessage>(this);
         WeakReferenceMessenger.Default.Register<TaskAddFailedMessage>(this);
-            WeakReferenceMessenger.Default.Register<RequestConfirmWithdrawCourseMessage>(this);
+        WeakReferenceMessenger.Default.Register<RequestConfirmWithdrawCourseMessage>(this);
 
         compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
         rootVisual = ElementCompositionPreview.GetElementVisual(this);
@@ -80,6 +81,16 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
     {
         _ = OpenSelectScheduleSelectPanel(message.TaskCompletionSource);
     }
+    
+    public async void Receive(RequestConfirmWithdrawCourseMessage message)
+    {
+        _ = OpenCourseToWithdrawPanel(message.SelectedCourses, message.TaskCompletionSource);
+    }
+
+    public void Receive(TaskAddFailedMessage message)
+    {
+        _ = OpenErrorMessageDialog(message.Info);
+    }
 
     private async Task OpenSelectScheduleSelectPanel(TaskCompletionSource<SelectSchedule> tcs)
     {
@@ -110,9 +121,30 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
         await dialog.ShowAsync();
     }
 
-    public void Receive(TaskAddFailedMessage message)
+    private async Task OpenCourseToWithdrawPanel(ObservableCollection<CourseItem> selectedCourses, TaskCompletionSource<CourseItem> tcs)
     {
-        _ = OpenErrorMessageDialog(message.Info);
+        var panel = new CourseToWithdrawSelectPanel(selectedCourses);
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = this.XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            PrimaryButtonText = "确定",
+            SecondaryButtonText = "取消",
+            DefaultButton = ContentDialogButton.Primary,
+            Title = "选择退选课程",
+            Content = panel,
+        };
+
+        dialog.PrimaryButtonClick += async (sender, e) =>
+        {
+            // 如上
+            dialog.Hide();
+
+            tcs.SetResult(panel.ViewModel.SelectedCourse);
+        };
+
+        await dialog.ShowAsync();
     }
 
     private async Task OpenErrorMessageDialog(string message)

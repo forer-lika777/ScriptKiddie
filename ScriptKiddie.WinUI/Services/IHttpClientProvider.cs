@@ -1,5 +1,6 @@
 ﻿using ScriptKiddie.WinUI.Models;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -17,7 +18,7 @@ public interface IHttpClientProvider
 
     public Task<CourseResponse> FetchSelectableCoursesAsync(CancellationToken cancellationToken);
 
-    public Task<List<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken);
+    public Task<ObservableCollection<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken);
 
     public Task<int> FetchCourseSelectLimitCountAsync(CancellationToken cancellationToken);
 

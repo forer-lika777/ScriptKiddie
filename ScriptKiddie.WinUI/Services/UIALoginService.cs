@@ -1,7 +1,6 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using ScriptKiddie.WinUI.Models;
-using ScriptKiddie.WinUI.Resources.Localization;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -187,7 +186,7 @@ public class UIALoginService : ILoginService
             return new LoginResult
             {
                 Success = false,
-                Message = AccountServiceStr.LoginFailedForUnknownReason,
+                Message = "未知原因导致登录失败",
                 StatusCode = loginResponse.StatusCode
             };
         }
@@ -243,7 +242,7 @@ public class UIALoginService : ILoginService
             return new LoginResult
             {
                 Success = true,
-                Message = AccountServiceStr.LoginSuccess,
+                Message = "登录成功",
                 StatusCode = statusCode,
                 CookieContent = loginOption.ExportCookie ? httpClientProvider.GetCookies() : [],
                 AccountName = GetAccountName(document) ?? "获取账户姓名失败",
@@ -256,7 +255,7 @@ public class UIALoginService : ILoginService
             return new LoginResult
             {
                 Success = true,
-                Message = AccountServiceStr.LoginSuccess,
+                Message = "登录成功",
                 StatusCode = statusCode,
                 AccountName = "获取账户姓名失败",
                 Grade = "获取年级失败"
@@ -327,7 +326,7 @@ public class UIALoginService : ILoginService
         string encryptSalt = ExtractValue(html, "id=\"pwdEncryptSalt\" value=\"");
         if (string.IsNullOrWhiteSpace(execution) || string.IsNullOrWhiteSpace(encryptSalt))
         {
-            throw new Exception(AccountServiceStr.UIA_CannotExtractExecutionOrEncryptSaltError);
+            throw new Exception("无法提取执行代码或加密盐值。");
         }
 
         string encryptedPassword = EncryptPassword(loginOption.Password, encryptSalt);

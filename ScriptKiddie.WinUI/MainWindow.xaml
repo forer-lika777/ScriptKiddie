@@ -15,7 +15,6 @@
     </Window.SystemBackdrop>
 
     <Grid>
-        <pages:MainPage Visibility="{x:Bind BoolToVis(ViewModel.IsLoggedIn), Mode=OneWay}"/>
-        <pages:LoginPage Visibility="{x:Bind BoolToRevVis(ViewModel.IsLoggedIn), Mode=OneWay}"/>
+        <pages:MainPage/>
     </Grid>
 </Window>

@@ -1,16 +1,18 @@
 ﻿using Microsoft.UI.Xaml.Controls;
 using ScriptKiddie.WinUI.Models;
+using ScriptKiddie.WinUI.ViewModels;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace ScriptKiddie.WinUI.Pages.Controls;
 
 public sealed partial class CourseToWithdrawSelectPanel : UserControl
 {
-    public readonly List<CourseItem> selectedCourses;
+    public CourseToWithdrawSelectPanelModel ViewModel { get; set; }
 
-    public CourseToWithdrawSelectPanel(List<CourseItem> selectedCourses)
+    public CourseToWithdrawSelectPanel(ObservableCollection<CourseItem> selectedCourses)
     {
         InitializeComponent();
-        this.selectedCourses = selectedCourses;
+        ViewModel = new CourseToWithdrawSelectPanelModel(selectedCourses);
     }
 }

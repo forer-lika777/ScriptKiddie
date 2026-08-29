@@ -15,8 +15,4 @@ public sealed partial class MainWindow : Window
 
         this.ViewModel = App.Current.Services.GetRequiredService<MainWindowModel>();
     }
-
-    public Visibility BoolToVis(bool isLoggedIn) => isLoggedIn ? Visibility.Visible : Visibility.Collapsed;
-
-    public Visibility BoolToRevVis(bool isLoggedIn) => isLoggedIn ? Visibility.Collapsed : Visibility.Visible;
 }

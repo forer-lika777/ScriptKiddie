@@ -1,0 +1,203 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>ScriptKiddie.WinUI.UITests</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+    <UseWinUI>true</UseWinUI>
+    <WinUISDKReferences>true</WinUISDKReferences>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <Nullable>enable</Nullable>
+	<SelfContained>true</SelfContained>
+	<LangVersion>14</LangVersion>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="SandboxPage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="App.xaml" />
+    <Compile Include="..\ScriptKiddie.WinUI\Messages.cs" Link="Messages.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockCourseSelectService.cs" Link="Mocks\MockCourseSelectService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockHttpClientProvider.cs" Link="Mocks\MockHttpClientProvider.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockLoginService.cs" Link="Mocks\MockLoginService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\AccountInfo.cs" Link="Models\AccountInfo.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\CookieItem.cs" Link="Models\CookieItem.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\CourseItem.cs" Link="Models\CourseItem.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\JsonContext.cs" Link="Models\JsonContext.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\LoginOption.cs" Link="Models\LoginOption.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\LoginResult.cs" Link="Models\LoginResult.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\PropertyDisplayItem.cs" Link="Models\PropertyDisplayItem.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\SelectSchedule.cs" Link="Models\SelectSchedule.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Models\ValidationErrorStatus.cs" Link="Models\ValidationErrorStatus.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\AccontManagePage.xaml.cs" Link="Pages\AccontManagePage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseInfoPanel.xaml.cs" Link="Pages\Controls\CourseInfoPanel.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseToWithdrawSelectPanel.xaml.cs" Link="Pages\Controls\CourseToWithdrawSelectPanel.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml.cs" Link="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleEditPanel.xaml.cs" Link="Pages\Controls\SelectScheduleEditPanel.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleSelectPanel.xaml.cs" Link="Pages\Controls\SelectScheduleSelectPanel.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\CourseListPage.xaml.cs" Link="Pages\CourseListPage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\HomePage.xaml.cs" Link="Pages\HomePage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\LoginPage.xaml.cs" Link="Pages\LoginPage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\MainPage.xaml.cs" Link="Pages\MainPage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\SelectSchedulePage.xaml.cs" Link="Pages\SelectSchedulePage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\SettingPage.xaml.cs" Link="Pages\SettingPage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\ShowacasePage.xaml.cs" Link="Pages\ShowacasePage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Pages\WelcomePage.xaml.cs" Link="Pages\WelcomePage.xaml.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\AccountManageService.cs" Link="Services\AccountManageService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\AnimationService.cs" Link="Services\AnimationService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\CourseSelectService.cs" Link="Services\CourseSelectService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\HttpClientProvider.cs" Link="Services\HttpClientProvider.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\IAccountManageService.cs" Link="Services\IAccountManageService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\IAppSettingsService.cs" Link="Services\IAppSettingsService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\ICourseSelectService.cs" Link="Services\ICourseSelectService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\IHttpClientProvider.cs" Link="Services\IHttpClientProvider.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\ILoginService.cs" Link="Services\ILoginService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\NavigationService.cs" Link="Services\NavigationService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\SelectScheduleProvider.cs" Link="Services\SelectScheduleProvider.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\UIALoginService.cs" Link="Services\UIALoginService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Services\WindowsAppSettingsService.cs" Link="Services\WindowsAppSettingsService.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\BoolToVisibilityConverter.cs" Link="Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\CourseStatusConverters.cs" Link="Converters\CourseStatusConverters.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\EnumToStringConverter.cs" Link="Converters\EnumToStringConverter.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\InverseBoolConverter.cs" Link="Converters\InverseBoolConverter.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\SelectTypeToIndexConverter.cs" Link="Converters\SelectTypeToIndexConverter.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\UrlToImageSourceConverter.cs" Link="Converters\UrlToImageSourceConverter.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\Utils\TextBlockHelper.cs" Link="TextBlockHelper.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\AccountManagePageModel.cs" Link="ViewModels\AccountManagePageModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\CourseListPageModel.cs" Link="ViewModels\CourseListPageModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\CourseToWithdrawSelectPanelModel.cs" Link="ViewModels\CourseToWithdrawSelectPanelModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\LoginPageModel.cs" Link="ViewModels\LoginPageModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\MainPageModel.cs" Link="ViewModels\MainPageModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\MainWindowModel.cs" Link="ViewModels\MainWindowModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectScheduleDeleteConfirmPanelModel.cs" Link="ViewModels\SelectScheduleDeleteConfirmPanelModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectScheduleEditPanelModel.cs" Link="ViewModels\SelectScheduleEditPanelModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectSchedulePageModel.cs" Link="ViewModels\SelectSchedulePageModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectScheduleSelectPanelModel.cs" Link="ViewModels\SelectScheduleSelectPanelModel.cs" />
+    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SettingPageModel.cs" Link="ViewModels\SettingPageModel.cs" />
+    <ProjectCapability Include="TestContainer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\ScriptKiddie.WinUI\Assets\100066396_p0.png" Link="Assets\100066396_p0.png" />
+    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\captcha1.png" Link="Mocks\Data\captcha1.png" />
+    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\captcha2.png" Link="Mocks\Data\captcha2.png" />
+    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\SelectableCoursesData.json" Link="Mocks\Data\SelectableCoursesData.json" />
+    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\SelectedCoursesData.json" Link="Mocks\Data\SelectedCoursesData.json" />
+    <Content Include="Assets\SplashScreen.scale-200.png" />
+    <Content Include="Assets\LockScreenLogo.scale-200.png" />
+    <Content Include="Assets\Square150x150Logo.scale-200.png" />
+    <Content Include="Assets\Square44x44Logo.scale-200.png" />
+    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+    <Content Include="Assets\StoreLogo.png" />
+    <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <!-- 
+    Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
+    Tools extension to be activated for this project even if the Windows App SDK Nuget
+    package has not yet been restored.
+  -->
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.9.0" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.3.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="4.3.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Mocks\Data\" />
+    <Folder Include="Models\" />
+    <Folder Include="Pages\Controls\" />
+    <Folder Include="ViewModels\" />
+    <Folder Include="Services\" />
+    <Folder Include="Converters\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\AccontManagePage.xaml" Link="Pages\AccontManagePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseInfoPanel.xaml" Link="Pages\Controls\CourseInfoPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseToWithdrawSelectPanel.xaml" Link="Pages\Controls\CourseToWithdrawSelectPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml" Link="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleEditPanel.xaml" Link="Pages\Controls\SelectScheduleEditPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleSelectPanel.xaml" Link="Pages\Controls\SelectScheduleSelectPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\CourseListPage.xaml" Link="Pages\CourseListPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\HomePage.xaml" Link="Pages\HomePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\LoginPage.xaml" Link="Pages\LoginPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\MainPage.xaml" Link="Pages\MainPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\SelectSchedulePage.xaml" Link="Pages\SelectSchedulePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\SettingPage.xaml" Link="Pages\SettingPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\ShowacasePage.xaml" Link="Pages\ShowacasePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\ScriptKiddie.WinUI\Pages\WelcomePage.xaml" Link="Pages\WelcomePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="SandboxPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <!-- 
+    Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 
+    Explorer "Package and Publish" context menu entry to be enabled for this project even if 
+    the Windows App SDK Nuget package has not yet been restored.
+  -->
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
+
+  <!-- Publish Properties -->
+  <PropertyGroup>
+    <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)'=='Debug_Unpackaged'">False</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+    <PublishTrimmed>False</PublishTrimmed>
+  </PropertyGroup>
+</Project>

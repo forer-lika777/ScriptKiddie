@@ -20,7 +20,7 @@ public class WindowsAppSettingsService : IAppSettingsService
 
     private static readonly IConfigurationRoot config = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddJsonFile("appsettings.json")
+            .AddJsonFile("appsettings.json", true)
             .Build();
 
     public WindowsAppSettingsService(ILogger<WindowsAppSettingsService> logger)
@@ -291,7 +291,7 @@ public class WindowsAppSettingsService : IAppSettingsService
                     jsonData = JsonSerializer.Serialize(value, typeof(T), context);
                 }
 
-                var encrypted = Encrypt(jsonData);
+                string encrypted = Encrypt(jsonData);
                 config[Name] = encrypted;
             }
             catch (JsonException jsonEx)

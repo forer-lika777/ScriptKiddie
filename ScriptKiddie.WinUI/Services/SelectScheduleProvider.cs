@@ -64,7 +64,7 @@ public partial class SelectScheduleProvider : ObservableObject
         }
     }
 
-    public void Add(SelectSchedule schedule)
+    public async void Add(SelectSchedule schedule)
     {
         SelectSchedules.Add(schedule);
 

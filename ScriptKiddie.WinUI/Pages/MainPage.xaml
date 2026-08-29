@@ -8,12 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <NavigationView x:Name="NavigationView"
-                    IsSettingsVisible="True"
-                    PaneDisplayMode="LeftCompact"
-                    ItemInvoked="NavigationView_ItemInvoked"
-                    IsBackEnabled="True"
-                    BackRequested="NavigationView_BackRequested">
+    <NavigationView x:Name="NavigationView" IsSettingsVisible="True" PaneDisplayMode="LeftCompact" ItemInvoked="NavigationView_ItemInvoked"
+                    IsBackEnabled="True" BackRequested="NavigationView_BackRequested" IsPaneVisible="{x:Bind ViewModel.IsLoggedIn, Mode=OneWay}">
         <NavigationView.MenuItems>
             <NavigationViewItem Content="开始"
                                 Icon="Home"

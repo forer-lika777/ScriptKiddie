@@ -2,13 +2,13 @@
 using Microsoft.Extensions.Logging;
 using ScriptKiddie.WinUI.Models;
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ScriptKiddie.WinUI.Services;
 
-public partial class AccountManageService
+public partial class AccountManageService : IAccountManageService
 {
     private readonly ILoginService loginService;
     private readonly ICourseSelectService courseSelectService;
@@ -175,7 +175,7 @@ public partial class AccountManageService
         return await courseSelectService.GetSelectableCoursesAsync(loggedOutCts!.Token);
     }
 
-    public async Task<List<CourseItem>?> GetSelectedCoursesAsync()
+    public async Task<ObservableCollection<CourseItem>?> GetSelectedCoursesAsync()
     {
         if (!await EnsureLoggedInAsync())
             return null;
@@ -193,17 +193,17 @@ public partial class AccountManageService
         _ = courseSelectService.StopSyncCourses();
     }
 
-    public bool AddCourse(CourseItem course, SelectSchedule schedule, OperationType operationType)
+    public async Task<bool> AddCourseAsync(CourseItem course, SelectSchedule schedule, OperationType operationType)
     {
-        return courseSelectService.AddCourse(course, schedule, operationType);
+        return await courseSelectService.AddCourseAsync(course, schedule, operationType);
     }
 
-    public bool AddCourse(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
+    public async Task<bool> AddCourseAsync(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
     {
-        return courseSelectService.AddCourse(course, courseToWithdraw, selectSchedule);
+        return await courseSelectService.AddCourseAsync(course, courseToWithdraw, selectSchedule);
     }
 
-    public bool Remove(CourseItem course)
+    public bool RemoveCourse(CourseItem course)
     {
         return courseSelectService.RemoveCourse(course);
     }

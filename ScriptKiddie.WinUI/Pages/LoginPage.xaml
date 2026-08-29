@@ -19,7 +19,7 @@
         <ProgressBar 
             VerticalAlignment="Top" IsIndeterminate="True"
             Visibility="{x:Bind ViewModel.LoginCommand.IsRunning, Mode=OneWay}"/>
-        <StackPanel HorizontalAlignment="Center" Spacing="15" Margin="20, 150, 0, 0" Width="400">
+        <StackPanel HorizontalAlignment="Center" Spacing="15" Margin="0, 30, 0, 100" Width="400">
             <StackPanel Spacing="15">
                 <StackPanel Orientation="Horizontal">
                     <TextBox 

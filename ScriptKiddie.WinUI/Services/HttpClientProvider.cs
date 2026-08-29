@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using ScriptKiddie.WinUI.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -159,7 +160,7 @@ public partial class HttpClientProvider : IHttpClientProvider
         return courses;
     }
 
-    public async Task<List<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken)
+    public async Task<ObservableCollection<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, GET_SELECTED_COURSES_URL);
 
@@ -183,7 +184,7 @@ public partial class HttpClientProvider : IHttpClientProvider
         }
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        var courses = await JsonSerializer.DeserializeAsync(stream, CourseItemListJsonContext.Default.ListCourseItem, cancellationToken);
+        var courses = await JsonSerializer.DeserializeAsync(stream, CourseItemListJsonContext.Default.ObservableCollectionCourseItem, cancellationToken);
 
         if (courses is null)
         {

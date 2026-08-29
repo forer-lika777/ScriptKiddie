@@ -4,7 +4,7 @@ using ScriptKiddie.WinUI.Services;
 
 namespace ScriptKiddie.WinUI.ViewModels;
 
-public partial class MainWindowModel : ObservableObject, IRecipient<LoginSuccessMessage>
+public partial class MainWindowModel : ObservableObject, IRecipient<UpdateLoginStatusMessage>
 {
     private readonly IAppSettingsService appSettingsService;
 
@@ -15,13 +15,13 @@ public partial class MainWindowModel : ObservableObject, IRecipient<LoginSuccess
     {
         this.appSettingsService = appSettingsService;
 
-        WeakReferenceMessenger.Default.Register(this);
+        WeakReferenceMessenger.Default.Register<UpdateLoginStatusMessage>(this);
 
         IsLoggedIn = appSettingsService.IsLoggedIn.Value;
     }
 
-    public void Receive(LoginSuccessMessage message)
+    public void Receive(UpdateLoginStatusMessage message)
     {
-        IsLoggedIn = true;
+        IsLoggedIn = message.IsLoggedIn;
     }
 }

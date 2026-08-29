@@ -18,7 +18,6 @@ public class NavigationService
 
     public void NavigateTo<T>(object? parameter = null) where T : Page
     {
-        //logger.LogDebug("导航到页面：{page}", typeof(T));
         frame?.Navigate(typeof(T), parameter, new DrillInNavigationTransitionInfo());
     }
 

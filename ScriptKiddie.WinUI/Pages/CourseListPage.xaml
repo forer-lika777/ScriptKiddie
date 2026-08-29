@@ -145,7 +145,7 @@
                                         <TextBlock Grid.Column="5" VerticalAlignment="Center" Text="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind IsFull, Converter={StaticResource IsFullStatusToStringConverter}, Mode=OneWay}" Foreground="{x:Bind IsFull, Converter={StaticResource IsFullStatusToColorConverter}, Mode=OneWay}"/>
                                         <StackPanel Grid.Column="9" Orientation="Horizontal" Spacing="10" Padding="0, 7, 0, 7">
                                             <Button x:Name="ViewMoreButton" VerticalAlignment="Stretch" Content="详细信息" Click="ViewMoreButton_Click"/>
-                                            <Button VerticalAlignment="Stretch" Content="添加课程" Command="{x:Bind local:CourseListPage.ViewModelCache.AddCourseCommand}" CommandParameter="{x:Bind}" IsEnabled="{x:Bind IsOperating, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
+                                            <Button VerticalAlignment="Stretch" Content="退选课程" Command="{x:Bind local:CourseListPage.ViewModelCache.WithdrawCourseCommand}" CommandParameter="{x:Bind}" IsEnabled="{x:Bind IsOperating, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"/>
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
