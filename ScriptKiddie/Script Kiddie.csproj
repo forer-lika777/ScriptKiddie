@@ -9,7 +9,6 @@
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
 	<EnableSourceGenerator>true</EnableSourceGenerator>
-	<Configurations>Debug;Release;Debug_Unpackaged</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
