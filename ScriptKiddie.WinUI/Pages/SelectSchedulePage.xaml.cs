@@ -26,10 +26,15 @@ public sealed partial class SelectSchedulePage : Page, IRecipient<SelectSchedule
         selectScheduleProvider = App.Current.Services.GetRequiredService<SelectScheduleProvider>();
         ViewModel = App.Current.Services.GetRequiredService<SelectSchedulePageModel>();
 
-        if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleRemoveConfirmMessage>(this))
         WeakReferenceMessenger.Default.Register<SelectScheduleRemoveConfirmMessage>(this);
 
         RefreshCommandButtonStatus();
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        WeakReferenceMessenger.Default.Unregister<SelectScheduleRemoveConfirmMessage>(this);
     }
 
     private void AddButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

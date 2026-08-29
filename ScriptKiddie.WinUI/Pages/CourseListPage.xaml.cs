@@ -37,13 +37,8 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
         navigationService = App.Current.Services.GetRequiredService<NavigationService>();
         logger = App.Current.Services.GetRequiredService<ILogger<CourseListPage>>();
 
-        if (!WeakReferenceMessenger.Default.IsRegistered<RequestChooseSelectScheduleMessage>(this))
         WeakReferenceMessenger.Default.Register<RequestChooseSelectScheduleMessage>(this);
-
-        if (!WeakReferenceMessenger.Default.IsRegistered<TaskAddFailedMessage>(this))
         WeakReferenceMessenger.Default.Register<TaskAddFailedMessage>(this);
-
-        if (!WeakReferenceMessenger.Default.IsRegistered<RequestConfirmWithdrawCourseMessage>(this))
             WeakReferenceMessenger.Default.Register<RequestConfirmWithdrawCourseMessage>(this);
 
         compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
@@ -57,6 +52,9 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
         base.OnNavigatedFrom(e);
         // 离开时将存储的静态值设置为 null，以匹配页面的生命周期
         ViewModelCache = null!;
+        WeakReferenceMessenger.Default.Unregister<RequestChooseSelectScheduleMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<TaskAddFailedMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<RequestConfirmWithdrawCourseMessage>(this);
     }
 
     private async void ViewMoreButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
