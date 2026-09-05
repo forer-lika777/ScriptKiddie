@@ -1,5 +1,5 @@
 ﻿using Microsoft.UI.Xaml.Data;
-using ScriptKiddie.WinUI.Models;
+using ScriptKiddie.Core.Models;
 using System;
 
 namespace ScriptKiddie.WinUI.Utils.Converters;

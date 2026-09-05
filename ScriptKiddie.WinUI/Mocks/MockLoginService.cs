@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using ScriptKiddie.WinUI.Models;
-using ScriptKiddie.WinUI.Services;
+using ScriptKiddie.Core.Models;
+using ScriptKiddie.Core.Services;
 using System;
 using System.IO;
 using System.Net;

@@ -21,22 +21,6 @@
     <Compile Remove="Mocks\**\*.cs" />
     <None Include="Mocks\**\*.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Remove="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Remove="Assets\winui-hero.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Assets\100066396_p0.png" />
-    <None Remove="MainPage.xaml" />
-    <None Remove="Pages\AccontManagePage.xaml" />
-    <None Remove="Pages\Controls\CourseInfoPanel.xaml" />
-    <None Remove="Pages\Controls\CourseToWithdrawSelectPanel.xaml" />
-    <None Remove="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml" />
-    <None Remove="Pages\Controls\SelectScheduleEditPanel.xaml" />
-    <None Remove="Pages\Controls\SelectScheduleSelectPanel.xaml" />
-    <None Remove="Pages\SelectSchedulePage.xaml" />
-    <None Remove="Pages\WelcomePage.xaml" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -78,6 +62,9 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ScriptKiddie.Core\ScriptKiddie.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Wide310x150Logo.scale-200.png" />

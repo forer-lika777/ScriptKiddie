@@ -22,19 +22,9 @@
 
   <ItemGroup>
     <Page Remove="App.xaml" />
-    <Compile Include="..\ScriptKiddie.WinUI\Messages.cs" Link="Messages.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockCourseSelectService.cs" Link="Mocks\MockCourseSelectService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockHttpClientProvider.cs" Link="Mocks\MockHttpClientProvider.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockLoginService.cs" Link="Mocks\MockLoginService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\AccountInfo.cs" Link="Models\AccountInfo.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\CookieItem.cs" Link="Models\CookieItem.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\CourseItem.cs" Link="Models\CourseItem.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\JsonContext.cs" Link="Models\JsonContext.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\LoginOption.cs" Link="Models\LoginOption.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\LoginResult.cs" Link="Models\LoginResult.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\PropertyDisplayItem.cs" Link="Models\PropertyDisplayItem.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\SelectSchedule.cs" Link="Models\SelectSchedule.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Models\ValidationErrorStatus.cs" Link="Models\ValidationErrorStatus.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Pages\AccontManagePage.xaml.cs" Link="Pages\AccontManagePage.xaml.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseInfoPanel.xaml.cs" Link="Pages\Controls\CourseInfoPanel.xaml.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseToWithdrawSelectPanel.xaml.cs" Link="Pages\Controls\CourseToWithdrawSelectPanel.xaml.cs" />
@@ -49,18 +39,8 @@
     <Compile Include="..\ScriptKiddie.WinUI\Pages\SettingPage.xaml.cs" Link="Pages\SettingPage.xaml.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Pages\ShowacasePage.xaml.cs" Link="Pages\ShowacasePage.xaml.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Pages\WelcomePage.xaml.cs" Link="Pages\WelcomePage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\AccountManageService.cs" Link="Services\AccountManageService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Services\AnimationService.cs" Link="Services\AnimationService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\CourseSelectService.cs" Link="Services\CourseSelectService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\HttpClientProvider.cs" Link="Services\HttpClientProvider.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\IAccountManageService.cs" Link="Services\IAccountManageService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\IAppSettingsService.cs" Link="Services\IAppSettingsService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\ICourseSelectService.cs" Link="Services\ICourseSelectService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\IHttpClientProvider.cs" Link="Services\IHttpClientProvider.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\ILoginService.cs" Link="Services\ILoginService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Services\NavigationService.cs" Link="Services\NavigationService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\SelectScheduleProvider.cs" Link="Services\SelectScheduleProvider.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\UIALoginService.cs" Link="Services\UIALoginService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Services\WindowsAppSettingsService.cs" Link="Services\WindowsAppSettingsService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\BoolToVisibilityConverter.cs" Link="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\CourseStatusConverters.cs" Link="Converters\CourseStatusConverters.cs" />
@@ -69,17 +49,6 @@
     <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\SelectTypeToIndexConverter.cs" Link="Converters\SelectTypeToIndexConverter.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\UrlToImageSourceConverter.cs" Link="Converters\UrlToImageSourceConverter.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Utils\TextBlockHelper.cs" Link="TextBlockHelper.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\AccountManagePageModel.cs" Link="ViewModels\AccountManagePageModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\CourseListPageModel.cs" Link="ViewModels\CourseListPageModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\CourseToWithdrawSelectPanelModel.cs" Link="ViewModels\CourseToWithdrawSelectPanelModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\LoginPageModel.cs" Link="ViewModels\LoginPageModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\MainPageModel.cs" Link="ViewModels\MainPageModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\MainWindowModel.cs" Link="ViewModels\MainWindowModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectScheduleDeleteConfirmPanelModel.cs" Link="ViewModels\SelectScheduleDeleteConfirmPanelModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectScheduleEditPanelModel.cs" Link="ViewModels\SelectScheduleEditPanelModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectSchedulePageModel.cs" Link="ViewModels\SelectSchedulePageModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SelectScheduleSelectPanelModel.cs" Link="ViewModels\SelectScheduleSelectPanelModel.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\ViewModels\SettingPageModel.cs" Link="ViewModels\SettingPageModel.cs" />
     <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 
@@ -128,9 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Mocks\Data\" />
-    <Folder Include="Models\" />
     <Folder Include="Pages\Controls\" />
-    <Folder Include="ViewModels\" />
     <Folder Include="Services\" />
     <Folder Include="Converters\" />
   </ItemGroup>
@@ -177,6 +144,9 @@
     <Page Include="..\ScriptKiddie.WinUI\Pages\WelcomePage.xaml" Link="Pages\WelcomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ScriptKiddie.Core\ScriptKiddie.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="SandboxPage.xaml">

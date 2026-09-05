@@ -1,7 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Controls;
-using ScriptKiddie.WinUI.Models;
-using ScriptKiddie.WinUI.ViewModels;
-using System.Collections.Generic;
+using ScriptKiddie.Core.Models;
+using ScriptKiddie.Core.ViewModels;
 using System.Collections.ObjectModel;
 
 namespace ScriptKiddie.WinUI.Pages.Controls;

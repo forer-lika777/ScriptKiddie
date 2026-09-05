@@ -6,7 +6,8 @@ using Microsoft.UI.Xaml;
 using ScriptKiddie.WinUI.Mocks;
 #endif
 using ScriptKiddie.WinUI.Services;
-using ScriptKiddie.WinUI.ViewModels;
+using ScriptKiddie.Core.ViewModels;
+using ScriptKiddie.Core.Services;
 using System;
 using System.Runtime.InteropServices;
 

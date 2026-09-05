@@ -2,7 +2,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using Moq;
-using ScriptKiddie.WinUI.Models;
+using ScriptKiddie.Core.Models;
+using ScriptKiddie.Core.Services;
 using ScriptKiddie.WinUI.Services;
 using System;
 using System.Collections.ObjectModel;

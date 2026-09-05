@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ScriptKiddie.WinUI.Models;
-using ScriptKiddie.WinUI.Services;
+using ScriptKiddie.Core.Models;
+using ScriptKiddie.Core.Services;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;

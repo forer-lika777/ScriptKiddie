@@ -3,10 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using ScriptKiddie.WinUI.Models;
+using ScriptKiddie.Core.Models;
+using ScriptKiddie.Core.Services;
+using ScriptKiddie.Core.ViewModels;
 using ScriptKiddie.WinUI.Pages.Controls;
-using ScriptKiddie.WinUI.Services;
-using ScriptKiddie.WinUI.ViewModels;
 using System;
 using System.Collections.Generic;
 
@@ -49,7 +49,7 @@ public sealed partial class SelectSchedulePage : Page, IRecipient<SelectSchedule
 
         if (schedule is not null)
         {
-            SelectScheduleEditPanelModel viewModel = new SelectScheduleEditPanelModel(schedule);
+            SelectScheduleEditPanelModel viewModel = new SelectScheduleEditPanelModel(App.Current.Services.GetRequiredService<SelectScheduleProvider>(), schedule);
 
             var panel = new SelectScheduleEditPanel(RootGrid, viewModel);
 

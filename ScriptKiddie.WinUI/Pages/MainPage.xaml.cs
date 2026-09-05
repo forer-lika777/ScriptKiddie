@@ -1,13 +1,11 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using ScriptKiddie.Core.Models;
+using ScriptKiddie.Core.ViewModels;
 using ScriptKiddie.WinUI.Services;
-using ScriptKiddie.WinUI.ViewModels;
-using System;
-using System.ComponentModel;
 using System.Linq;
 
 namespace ScriptKiddie.WinUI.Pages;

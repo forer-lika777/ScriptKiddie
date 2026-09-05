@@ -1,5 +1,7 @@
-﻿using Microsoft.UI.Xaml.Controls;
-using ScriptKiddie.WinUI.ViewModels;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Controls;
+using ScriptKiddie.Core.Services;
+using ScriptKiddie.Core.ViewModels;
 using System;
 
 namespace ScriptKiddie.WinUI.Pages.Controls;
@@ -13,7 +15,7 @@ public sealed partial class SelectScheduleEditPanel : UserControl
     {
         InitializeComponent();
         this.root = root;
-        ViewModel = viewModel ?? new SelectScheduleEditPanelModel();
+        ViewModel = viewModel ?? new SelectScheduleEditPanelModel(App.Current.Services.GetRequiredService<SelectScheduleProvider>());
         ViewModel.CloseRequested += OnCloseRequested;
     }
 

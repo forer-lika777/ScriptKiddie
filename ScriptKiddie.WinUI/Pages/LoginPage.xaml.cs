@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using ScriptKiddie.WinUI.ViewModels;
+using ScriptKiddie.Core.ViewModels;
 using Windows.System;
 
 namespace ScriptKiddie.WinUI.Pages;
