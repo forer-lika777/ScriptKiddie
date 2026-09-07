@@ -15,16 +15,16 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
 {
     private readonly IHttpClientProvider httpClientProvider;
     private readonly ILogger<MockCourseSelectService> logger;
-    private readonly SelectScheduleProvider selectScheduleProvider;
+    private readonly ISelectScheduleProvider selectScheduleProvider;
 
-    private CourseResponse? selectableCourses = null;
+    private ObservableCollection<CourseItem>? selectableCourses = null;
     private ObservableCollection<CourseItem>? selectedCourses = null;
 
     private ObservableCollection<CourseSelectTask> selectTasks = [];
 
     private CancellationTokenSource? cancellationTokenSource;
 
-    public MockCourseSelectService(IHttpClientProvider httpClientProvider, ILogger<MockCourseSelectService> logger, SelectScheduleProvider selectScheduleProvider)
+    public MockCourseSelectService(IHttpClientProvider httpClientProvider, ILogger<MockCourseSelectService> logger, ISelectScheduleProvider selectScheduleProvider)
     {
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
@@ -36,7 +36,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
     private void SetSelectableCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectableCoursesData.json"));
-        selectableCourses = (CourseResponse?)JsonSerializer.Deserialize(content, typeof(CourseResponse), CourseResponseJsonContext.Default);
+        selectableCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
     }
 
     private void SetSelectedCourses()
@@ -50,7 +50,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
         throw new NotImplementedException();
     }
 
-    public async Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
+    public async Task<ObservableCollection<CourseItem>?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -156,10 +156,7 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
         throw new NotImplementedException();
     }
 
-    public ObservableCollection<CourseSelectTask> GetSelectTasks()
-    {
-        throw new NotImplementedException();
-    }
+    public ObservableCollection<CourseSelectTask> SelectTasks => throw new NotImplementedException();
 
     public async Task<bool> AddCourseAsync(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
     {

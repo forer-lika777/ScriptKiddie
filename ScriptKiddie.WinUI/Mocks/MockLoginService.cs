@@ -142,6 +142,7 @@ public class MockLoginService : ILoginService
             captchaImageContent = "0d000721";
             return Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "captcha2.png");
         }
+
         if (captchaImageContent == "0d000721")
         {
             captchaImageContent = "0721";

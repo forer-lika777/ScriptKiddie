@@ -7,7 +7,7 @@ namespace ScriptKiddie.Core.ViewModels;
 
 public partial class SelectScheduleEditPanelModel : ObservableObject
 {
-    private readonly SelectScheduleProvider selectScheduleProvider;
+    private readonly ISelectScheduleProvider selectScheduleProvider;
 
     private readonly bool isEdit;
     private readonly string? initialName = null;
@@ -17,7 +17,7 @@ public partial class SelectScheduleEditPanelModel : ObservableObject
 
     private readonly SelectSchedule? selectSchedule = null;
 
-    public SelectScheduleEditPanelModel(SelectScheduleProvider selectScheduleProvider)
+    public SelectScheduleEditPanelModel(ISelectScheduleProvider selectScheduleProvider)
     {
         this.selectScheduleProvider = selectScheduleProvider;
 
@@ -33,7 +33,7 @@ public partial class SelectScheduleEditPanelModel : ObservableObject
         EndTimeTime = StartTimeTime + new TimeSpan(6, 0, 0);
     }
 
-    public SelectScheduleEditPanelModel(SelectScheduleProvider selectScheduleProvider, SelectSchedule selectSchedule)
+    public SelectScheduleEditPanelModel(ISelectScheduleProvider selectScheduleProvider, SelectSchedule selectSchedule)
     {
         this.selectScheduleProvider = selectScheduleProvider;
 

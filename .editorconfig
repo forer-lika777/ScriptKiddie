@@ -277,6 +277,3 @@ dotnet_naming_style.begins_with_lowercase_letter.word_separator =
 dotnet_naming_style.begins_with_lowercase_letter.capitalization = camel_case
 
 dotnet_naming_style.uppercase_style.capitalization = all_upper
-
-# Default severity for all analyzer diagnostics
-dotnet_analyzer_diagnostic.severity = none

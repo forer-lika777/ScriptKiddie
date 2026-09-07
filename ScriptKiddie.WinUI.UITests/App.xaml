@@ -3,23 +3,15 @@
     x:Class="ScriptKiddie.WinUI.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:ScriptKiddie.WinUI"
-    xmlns:converters="using:ScriptKiddie.WinUI.Utils.Converters">
+    xmlns:local="using:ScriptKiddie.WinUI">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <!-- Other merged dictionaries here -->
+                <ResourceDictionary Source="/ScriptKiddie.WinUI.Views/ResourceDictionary.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
-
-            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-            <converters:BoolToReversedVisibilityConverter x:Key="BoolToReversedVisibilityConverter"/>
-            <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
-
-            <converters:SelectStatusToStringConverter x:Key="SelectStatusToStringConverter"/>
-            <converters:SelectTypeToStringConverter x:Key="SelectTypeToStringConverter"/>
-            <converters:OperationTypeToStringConverter x:Key="OperationTypeToStringConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

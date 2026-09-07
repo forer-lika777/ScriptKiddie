@@ -12,7 +12,7 @@ public interface IHttpClientProvider
 
     public CookieCollection GetCookies();
 
-    public Task<CourseResponse> FetchSelectableCoursesAsync(CancellationToken cancellationToken);
+    public Task<ObservableCollection<CourseItem>?> FetchSelectableCoursesAsync(CancellationToken cancellationToken);
 
     public Task<ObservableCollection<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken);
 

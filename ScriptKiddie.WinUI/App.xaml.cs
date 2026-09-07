@@ -8,6 +8,8 @@ using ScriptKiddie.WinUI.Mocks;
 using ScriptKiddie.WinUI.Services;
 using ScriptKiddie.Core.ViewModels;
 using ScriptKiddie.Core.Services;
+using ScriptKiddie.WinUI.Views;
+using ScriptKiddie.WinUI.Views.Pages;
 using System;
 using System.Runtime.InteropServices;
 
@@ -29,6 +31,7 @@ public partial class App : Application
         AllocConsole();
 
         Services = ConfigureServices();
+        AppServices.Initialize(Services);
 
         var logger = Services.GetRequiredService<ILogger<App>>();
         logger.LogInformation("ScriptKiddie - WinUI 已启用调试控制台");
@@ -78,7 +81,7 @@ public partial class App : Application
     private static void AddServices(ServiceCollection services)
     {
         services.AddSingleton<IAppSettingsService, WindowsAppSettingsService>();
-        services.AddSingleton<SelectScheduleProvider>();
+        services.AddSingleton<ISelectScheduleProvider, SelectScheduleProvider>();
 
         bool addMockServices = true;
 
@@ -119,7 +122,11 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
-        window = new MainWindow();
+        window = new MainWindow
+        {
+            Content = new MainPage()
+        };
+
         window.Activate();
     }
 }

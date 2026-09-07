@@ -5,12 +5,17 @@ using System.Collections.ObjectModel;
 
 namespace ScriptKiddie.Core.Services;
 
-public partial class SelectScheduleProvider : ObservableObject
+public partial class SelectScheduleProvider : ObservableObject, ISelectScheduleProvider
 {
     private readonly IAppSettingsService appSettingsService;
 
     [ObservableProperty]
     public partial ObservableCollection<SelectSchedule> SelectSchedules { get; set; }
+
+    public ObservableCollection<SelectSchedule> GetSelectSchedules()
+    {
+        return this.SelectSchedules;
+    }
 
     public SelectScheduleProvider(IAppSettingsService appSettingsService)
     {
@@ -70,9 +75,6 @@ public partial class SelectScheduleProvider : ObservableObject
         Update();
     }
 
-    /// <summary>
-    /// 供外部在修改集合内部对象的属性时调用
-    /// </summary>
     public void Update()
     {
         // 集合内容变化不会导致引用地址发生变化。需要手动保存。

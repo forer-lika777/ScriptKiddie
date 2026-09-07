@@ -7,12 +7,12 @@ namespace ScriptKiddie.Core.ViewModels;
 
 public partial class SelectScheduleSelectPanelModel : ObservableObject
 {
-    private readonly SelectScheduleProvider selectScheduleProvider;
+    private readonly ISelectScheduleProvider selectScheduleProvider;
 
-    public SelectScheduleSelectPanelModel(SelectScheduleProvider selectScheduleProvider)
+    public SelectScheduleSelectPanelModel(ISelectScheduleProvider selectScheduleProvider)
     {
         this.selectScheduleProvider = selectScheduleProvider;
-        SelectSchedules = selectScheduleProvider.SelectSchedules;
+        SelectSchedules = selectScheduleProvider.GetSelectSchedules();
         SelectedSchedule = SelectSchedules[0];
     }
 

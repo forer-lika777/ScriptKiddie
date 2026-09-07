@@ -12,7 +12,7 @@ namespace ScriptKiddie.Core.Services;
 public partial class CourseSelectService : ICourseSelectService, IRecipient<SelectScheduleRemoveMessage>
 {
     private readonly IHttpClientProvider httpClientProvider;
-    private readonly SelectScheduleProvider selectScheduleProvider;
+    private readonly ISelectScheduleProvider selectScheduleProvider;
     private readonly ILogger<CourseSelectService> logger;
 
     private readonly SemaphoreSlim refreshSemaphore = new SemaphoreSlim(0, int.MaxValue);
@@ -24,12 +24,12 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
     //private static readonly SemaphoreSlim _syncSemaphore = new SemaphoreSlim(1, 1);
 
-    private readonly ObservableCollection<CourseSelectTask> selectTasks = [];
+    public ObservableCollection<CourseSelectTask> SelectTasks { get; private set; } = [];
 
     private const string BASE_URL = "https://jxfw.gdut.edu.cn";
     private const string CAPTCHA_PAGE_URL = BASE_URL + "/waf_text_verify.html";
 
-    private CourseResponse? selectableCourses = null;
+    private ObservableCollection<CourseItem>? selectableCourses = null;
     private ObservableCollection<CourseItem>? selectedCourses = null;
 
     private CancellationTokenSource? syncSelectableCoursesCts = null;
@@ -47,18 +47,18 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
     private int selectCountLimit;
 
-    public CourseSelectService(IHttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger, SelectScheduleProvider selectScheduleProvider)
+    public CourseSelectService(IHttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger, ISelectScheduleProvider selectScheduleProvider)
     {
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
         this.selectScheduleProvider = selectScheduleProvider;
-        selectSchedules = selectScheduleProvider.SelectSchedules;
+        selectSchedules = selectScheduleProvider.GetSelectSchedules();
 
         if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleRemoveMessage>(this))
             WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
     }
 
-    public async Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
+    public async Task<ObservableCollection<CourseItem>?> GetSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         await RefreshSelectableCoursesAsync(cancellationToken);
         return selectableCourses;
@@ -117,7 +117,22 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     {
         try
         {
-            selectableCourses = await httpClientProvider.FetchSelectableCoursesAsync(cancellationToken);
+            var courses = await httpClientProvider.FetchSelectableCoursesAsync(cancellationToken);
+
+            if (courses is null)
+                throw new Exception("获取可选课程失败。");
+
+            if (courses.Count == selectableCourses?.Count)
+            {
+                for (int i = 0; i < courses.Count; i++)
+                {
+                    selectableCourses[i].SelectedStudentCount = courses[i].SelectedStudentCount;
+                }
+            }
+            else
+            {
+                selectableCourses = courses;
+            }
 
             SelectableCoursesChanged?.Invoke(this, EventArgs.Empty);
 
@@ -163,11 +178,6 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         }
     }
 
-    public ObservableCollection<CourseSelectTask> GetSelectTasks()
-    {
-        return selectTasks;
-    }
-
     /// <summary>
     /// 添加一个与课程和时间表关联的选课任务到任务列表。
     /// </summary>
@@ -200,7 +210,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         }
 
         var task = new CourseSelectTask(selectSchedule, course, SelectStatus.Pending, operationType);
-        selectTasks.Add(task);
+        SelectTasks.Add(task);
 
         _ = ExcuteTask(task);
 
@@ -227,7 +237,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         }
 
         var task = new CourseSelectTask(selectSchedule, course, courseToWithdraw, SelectStatus.Pending);
-        selectTasks.Add(task);
+        SelectTasks.Add(task);
 
         _ = ExcuteTask(task);
 
@@ -258,7 +268,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
             logger.LogWarning("警告：未刷新已选课程信息。");
         }
 
-        if (selectTasks.Any(task => task.Course.Equals(course) && (task.SelectStatus == SelectStatus.Pending || task.SelectStatus == SelectStatus.Executing)))
+        if (SelectTasks.Any(task => task.Course.Equals(course) && (task.SelectStatus == SelectStatus.Pending || task.SelectStatus == SelectStatus.Executing)))
         {
             ReportAddCourseError("已存在该课程的任务。");
             return false;
@@ -293,7 +303,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     public bool RemoveCourse(CourseItem course)
     {
         // 先取消，再一次性删除
-        var tasksToRemove = selectTasks.Where(t => t.Course.Equals(course)).ToList();
+        var tasksToRemove = SelectTasks.Where(t => t.Course.Equals(course)).ToList();
 
         if (tasksToRemove.Count == 0)
         {
@@ -304,7 +314,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         foreach (var task in tasksToRemove)
         {
             task.Cts.Cancel();
-            selectTasks.Remove(task);
+            SelectTasks.Remove(task);
         }
 
         return true;
@@ -316,7 +326,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         var changedSelectSchedules = message.ChangedSelectSchedules;
         var tasksToRemove = new List<CourseSelectTask>();
 
-        tasksToRemove.AddRange(selectTasks.Where(task => changedSelectSchedules.Contains(task.SelectSchedule)));
+        tasksToRemove.AddRange(SelectTasks.Where(task => changedSelectSchedules.Contains(task.SelectSchedule)));
 
         var tcs = message.TaskCompletionSource;
 
@@ -338,7 +348,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         foreach (var task in tasksToRemove)
         {
             task.Cts.Cancel();
-            selectTasks.Remove(task);
+            SelectTasks.Remove(task);
         }
     }
 
@@ -347,8 +357,8 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     {
         var tasksToRemove = new List<CourseSelectTask>();
 
-        tasksToRemove.AddRange(selectTasks.Where(task => !selectSchedules.Contains(task.SelectSchedule)).ToList());
-        tasksToRemove.AddRange(selectTasks.Where(task => selectedCourses?.Count < selectCountLimit && task.OperationType == OperationType.WithdrawToSelect));
+        tasksToRemove.AddRange(SelectTasks.Where(task => !selectSchedules.Contains(task.SelectSchedule)).ToList());
+        tasksToRemove.AddRange(SelectTasks.Where(task => selectedCourses?.Count < selectCountLimit && task.OperationType == OperationType.WithdrawToSelect));
 
         WeakReferenceMessenger.Default.Send<SelectScheduleRemoveConfirmMessage>(new SelectScheduleRemoveConfirmMessage(tasksToRemove, tcs));
 
@@ -364,7 +374,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         foreach (var task in tasksToRemove)
         {
             task.Cts.Cancel();
-            selectTasks.Remove(task);
+            SelectTasks.Remove(task);
         }
     }
 
@@ -373,13 +383,13 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     {
         var tasksToRemove = new List<CourseSelectTask>();
 
-        tasksToRemove.AddRange(selectTasks.Where(task => !selectSchedules.Contains(task.SelectSchedule)).ToList());
-        tasksToRemove.AddRange(selectTasks.Where(task => selectedCourses?.Count < selectCountLimit && task.OperationType == OperationType.WithdrawToSelect));
+        tasksToRemove.AddRange(SelectTasks.Where(task => !selectSchedules.Contains(task.SelectSchedule)).ToList());
+        tasksToRemove.AddRange(SelectTasks.Where(task => selectedCourses?.Count < selectCountLimit && task.OperationType == OperationType.WithdrawToSelect));
 
         foreach (var task in tasksToRemove)
         {
             task.Cts.Cancel();
-            selectTasks.Remove(task);
+            SelectTasks.Remove(task);
         }
     }
 
@@ -488,7 +498,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
             // 数据已刷新，检查自己的课程
             var courses = selectableCourses; // 读取引用（原子操作）
-            var targetCourse = courses?.Rows.FirstOrDefault(c => c.Equals(course));
+            var targetCourse = courses?.FirstOrDefault(c => c.Equals(course));
             //var targetCourse = selectableCourses?.Rows.FirstOrDefault(c => c.Equals(course));
 
             if (targetCourse == null)

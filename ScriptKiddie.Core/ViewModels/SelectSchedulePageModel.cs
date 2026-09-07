@@ -9,20 +9,20 @@ namespace ScriptKiddie.Core.ViewModels;
 public partial class SelectSchedulePageModel : ObservableObject, IRecipient<SelectScheduleRemoveMessage>, IRecipient<SelectScheduleAddedMessage>
 {
     private readonly IAppSettingsService appSettingsService;
-    private readonly SelectScheduleProvider selectScheduleProvider;
+    private readonly ISelectScheduleProvider selectScheduleProvider;
 
-    public SelectSchedulePageModel(IAppSettingsService appSettingsService, SelectScheduleProvider selectScheduleProvider)
+    public SelectSchedulePageModel(IAppSettingsService appSettingsService, ISelectScheduleProvider selectScheduleProvider)
     {
         this.appSettingsService = appSettingsService;
         this.selectScheduleProvider = selectScheduleProvider;
-        SelectSchedules = selectScheduleProvider.SelectSchedules;
+        SelectSchedules = selectScheduleProvider.GetSelectSchedules();
 
         WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
         WeakReferenceMessenger.Default.Register<SelectScheduleAddedMessage>(this);
     }
 
     [ObservableProperty]
-    public partial ObservableCollection<SelectSchedule> SelectSchedules { get; set; }
+    public partial ObservableCollection<SelectSchedule> SelectSchedules { get; set; } = [];
 
     partial void OnSelectSchedulesChanged(ObservableCollection<SelectSchedule> value)
     {

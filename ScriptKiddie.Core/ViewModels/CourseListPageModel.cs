@@ -10,14 +10,14 @@ namespace ScriptKiddie.Core.ViewModels;
 public partial class CourseListPageModel : ObservableObject, IRecipient<SelectScheduleRemoveMessage>, IRecipient<SelectScheduleAddedMessage>
 {
     private readonly IAccountManageService accountManageService;
-    private readonly SelectScheduleProvider selectScheduleProvider;
+    private readonly ISelectScheduleProvider selectScheduleProvider;
 
-    public CourseListPageModel(ICourseSelectService courseSelectService, IAccountManageService accountManageService, SelectScheduleProvider selectScheduleProvider)
+    public CourseListPageModel(ICourseSelectService courseSelectService, IAccountManageService accountManageService, ISelectScheduleProvider selectScheduleProvider)
     {
         this.accountManageService = accountManageService;
         this.selectScheduleProvider = selectScheduleProvider;
-        SelectSchedules = selectScheduleProvider.SelectSchedules;
-        SelectTasks = courseSelectService.GetSelectTasks();
+        SelectSchedules = selectScheduleProvider.GetSelectSchedules();
+        SelectTasks = courseSelectService.SelectTasks;
         _ = SyncCoursesContent();
 
         WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
@@ -29,7 +29,7 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     {
         var selectableCourses = await accountManageService.GetSelectableCoursesAsync();
         if (selectableCourses is not null)
-            SelectableCourses = selectableCourses.Rows;
+            SelectableCourses = selectableCourses;
 
         var selectedCourses = await accountManageService.GetSelectedCoursesAsync();
         if (selectedCourses is not null)
@@ -54,13 +54,10 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     public partial bool LoadingFailed { get; set; } = false;
 
     [ObservableProperty]
-    public partial List<CourseItem> SelectableCourses { get; set; } = [];
+    public partial ObservableCollection<CourseItem> SelectableCourses { get; set; } = [];
 
     [ObservableProperty]
     public partial ObservableCollection<CourseItem> SelectedCourses { get; set; } = [];
-
-    //[ObservableProperty]
-    //public partial List<CourseItem> PreSelectCourses { get; set; } = [];
 
     [ObservableProperty]
     public partial ObservableCollection<SelectSchedule> SelectSchedules { get; set; } = [];

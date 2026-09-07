@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.Json.Serialization;
@@ -11,7 +12,7 @@ public class CourseResponse
     public int Total { get; set; } = -1;
 
     [JsonPropertyName("rows")]
-    public List<CourseItem> Rows { get; set; } = [];
+    public ObservableCollection<CourseItem> Rows { get; set; } = [];
 }
 
 public partial class CourseItem : ObservableObject

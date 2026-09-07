@@ -164,7 +164,7 @@ public partial class AccountManageService : IAccountManageService
         return accountInfo;
     }
 
-    public async Task<CourseResponse?> GetSelectableCoursesAsync()
+    public async Task<ObservableCollection<CourseItem>?> GetSelectableCoursesAsync()
     {
         if (!await EnsureLoggedInAsync())
             return null;

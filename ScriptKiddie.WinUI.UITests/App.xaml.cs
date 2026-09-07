@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using ScriptKiddie.WinUI.UITests;
+using ScriptKiddie.WinUI.Views;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -114,5 +115,6 @@ public partial class App : Application
         AddLogger(services);
 
         Services = services.BuildServiceProvider();
+        AppServices.Initialize(Services);
     }
 }

@@ -5,8 +5,8 @@ namespace ScriptKiddie.Core.Services;
 
 public interface ICourseSelectService
 {
-    public ObservableCollection<CourseSelectTask> GetSelectTasks();
-    public Task<CourseResponse?> GetSelectableCoursesAsync(CancellationToken cancellationToken);
+    ObservableCollection<CourseSelectTask> SelectTasks { get; }
+    public Task<ObservableCollection<CourseItem>?> GetSelectableCoursesAsync(CancellationToken cancellationToken);
     public Task<ObservableCollection<CourseItem>?> GetSelectedCoursesAsync(CancellationToken cancellationToken);
     public Task<int?> GetSelectLimitCountAsync(CancellationToken cancellationToken);
     public Task<bool> AddCourseAsync(CourseItem course, SelectSchedule selectSchedule, OperationType operationType);

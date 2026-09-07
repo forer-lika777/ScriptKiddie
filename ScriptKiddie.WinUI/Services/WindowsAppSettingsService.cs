@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.DataProtection;
+using Windows.Storage;
 using Windows.Storage.Streams;
 
 namespace ScriptKiddie.WinUI.Services;
@@ -106,7 +107,8 @@ public class WindowsAppSettingsService : IAppSettingsService
         {
             try
             {
-                var raw = config[Name];
+                var raw = ApplicationData.Current.LocalSettings.Values[Name];
+                //var raw = config[Name];
 
                 if (raw == null)
                 {
@@ -156,7 +158,8 @@ public class WindowsAppSettingsService : IAppSettingsService
                     valueToStore = JsonSerializer.Serialize(value, typeof(T), context);
                 }
 
-                config[Name] = valueToStore;
+                ApplicationData.Current.LocalSettings.Values[Name] = valueToStore;
+                //config[Name] = valueToStore;
             }
             catch (JsonException jsonEx)
             {
@@ -235,7 +238,8 @@ public class WindowsAppSettingsService : IAppSettingsService
         {
             try
             {
-                var raw = config[Name];
+                var raw = ApplicationData.Current.LocalSettings.Values[Name];
+                //var raw = config[Name];
 
                 if (raw is null || raw is not string encryptedData)
                 {
@@ -293,7 +297,8 @@ public class WindowsAppSettingsService : IAppSettingsService
                 }
 
                 string encrypted = Encrypt(jsonData);
-                config[Name] = encrypted;
+                //config[Name] = encrypted;
+                ApplicationData.Current.LocalSettings.Values[Name] = encrypted;
             }
             catch (JsonException jsonEx)
             {

@@ -8,7 +8,7 @@ public interface IAccountManageService
     public Task<LoginResult> LoginAsync(LoginOption loginOption);
     public Task<bool> LogoutAsync(CancellationToken cts = default);
     public AccountInfo? GetAccountInfo();
-    public Task<CourseResponse?> GetSelectableCoursesAsync();
+    public Task<ObservableCollection<CourseItem>?> GetSelectableCoursesAsync();
     public Task<ObservableCollection<CourseItem>?> GetSelectedCoursesAsync();
     public Task BeginSyncCourses();
     public Task StopSyncCourses();

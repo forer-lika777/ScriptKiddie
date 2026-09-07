@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using ScriptKiddie.Core.Models;
 using ScriptKiddie.Core.Services;
+using ScriptKiddie.WinUI.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -15,11 +15,11 @@ namespace ScriptKiddie.WinUI.Mocks;
 
 public class MockHttpClientProvider : IHttpClientProvider
 {
-    private readonly SelectScheduleProvider selectScheduleProvider = App.Current.Services.GetRequiredService<SelectScheduleProvider>();
+    private readonly ISelectScheduleProvider selectScheduleProvider = AppServices.GetRequiredService<ISelectScheduleProvider>();
     private readonly ILogger<MockHttpClientProvider> logger;
 
     private CookieCollection cookies = [];
-    private CourseResponse? selectableCourses = null;
+    private ObservableCollection<CourseItem>? selectableCourses = null;
     private ObservableCollection<CourseItem>? selectedCourses = null;
 
     public MockHttpClientProvider(ILogger<MockHttpClientProvider> logger)
@@ -33,7 +33,7 @@ public class MockHttpClientProvider : IHttpClientProvider
     private void SetSelectableCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectableCoursesData.json"));
-        selectableCourses = (CourseResponse?)JsonSerializer.Deserialize(content, typeof(CourseResponse), CourseResponseJsonContext.Default);
+        selectableCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
     }
 
     private void SetSelectedCourses()
@@ -77,7 +77,7 @@ public class MockHttpClientProvider : IHttpClientProvider
         return 2;
     }
 
-    public async Task<CourseResponse> FetchSelectableCoursesAsync(CancellationToken cancellationToken)
+    public async Task<ObservableCollection<CourseItem>?> FetchSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         await Task.Delay(700, cancellationToken);
         return selectableCourses!;
@@ -103,7 +103,7 @@ public class MockHttpClientProvider : IHttpClientProvider
     {
         await Task.Delay(1500, cancellationToken);
 
-        var selectSchedules = selectScheduleProvider.SelectSchedules;
+        var selectSchedules = selectScheduleProvider.GetSelectSchedules();
         var now = DateTime.Now;
 
         foreach (var schedule in selectSchedules)
@@ -145,7 +145,7 @@ public class MockHttpClientProvider : IHttpClientProvider
     {
         await Task.Delay(1500, cancellationToken);
 
-        var selectSchedules = selectScheduleProvider.SelectSchedules;
+        var selectSchedules = selectScheduleProvider.GetSelectSchedules();
         var now = DateTime.Now;
 
         foreach (var schedule in selectSchedules)

@@ -101,13 +101,13 @@ public partial class HttpClientProvider : IHttpClientProvider
         }
     }
 
-    public async Task<CourseResponse> FetchSelectableCoursesAsync(CancellationToken cancellationToken)
+    public async Task<ObservableCollection<CourseItem>?> FetchSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         int page = 1;
         int pageSize = 100;
         int total = -1;
 
-        var courses = new CourseResponse();
+        var courses = new ObservableCollection<CourseItem>();
 
         while (total == -1 || pageSize * (page - 1) < total)
         {
@@ -144,10 +144,13 @@ public partial class HttpClientProvider : IHttpClientProvider
                 break;
             }
 
-            courses.Total = total = courseResponse.Total;
-            courses.Rows.AddRange(courseResponse.Rows);
+            total = courseResponse.Total;
+            foreach (var course in courseResponse.Rows)
+            {
+                courses.Add(course);
+            }
 
-            logger.LogInformation("Successfully get selectable courses. Current response count is: {count2}. Current total count is: {count3}", courseResponse.Rows.Count, courses.Total);
+            logger.LogInformation("Successfully get selectable courses. Current response count is: {count2}. Current total count is: {count3}", courseResponse.Rows.Count, total);
 
             page++;
         }

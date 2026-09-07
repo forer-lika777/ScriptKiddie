@@ -6,15 +6,10 @@
     xmlns:local="using:ScriptKiddie.WinUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:pages="using:ScriptKiddie.WinUI.Pages"
-    mc:Ignorable="d"
-    Title="ScriptKiddie.WinUI">
+    xmlns:pages="using:ScriptKiddie.WinUI.Views.Pages"
+    mc:Ignorable="d">
 
     <Window.SystemBackdrop>
         <MicaBackdrop/>
     </Window.SystemBackdrop>
-
-    <Grid>
-        <pages:MainPage/>
-    </Grid>
 </Window>

@@ -29,7 +29,7 @@ public partial class CourseSelectServiceTests
 
     private Mock<IHttpClientProvider>? mockHttpClientProvider;
     //private Mock<ILogger<CourseSelectService>>? mockLogger = null!;
-    private SelectScheduleProvider? selectScheduleProvider;
+    private ISelectScheduleProvider? selectScheduleProvider;
     private CourseSelectService? courseSelectService;
     private Mock<IAppSettingsService>? mockAppSettingsService;
 
@@ -59,7 +59,7 @@ public partial class CourseSelectServiceTests
             .Returns(async () =>
             {
                 await Task.Delay(1000);
-                if (DateTime.Now >= selectScheduleProvider.SelectSchedules[0].ScheduleTime.StartTime && DateTime.Now <= selectScheduleProvider.SelectSchedules[0].ScheduleTime.EndTime)
+                if (DateTime.Now >= selectScheduleProvider.GetSelectSchedules()[0].ScheduleTime.StartTime && DateTime.Now <= selectScheduleProvider.GetSelectSchedules()[0].ScheduleTime.EndTime)
                 {
                     return new HttpResponseMessage { Content = new StringContent("1") };
                 }
@@ -74,7 +74,7 @@ public partial class CourseSelectServiceTests
             .Returns(async () =>
             {
                 await Task.Delay(1000);
-                if (DateTime.Now >= selectScheduleProvider.SelectSchedules[0].ScheduleTime.StartTime && DateTime.Now <= selectScheduleProvider.SelectSchedules[0].ScheduleTime.EndTime)
+                if (DateTime.Now >= selectScheduleProvider.GetSelectSchedules()[0].ScheduleTime.StartTime && DateTime.Now <= selectScheduleProvider.GetSelectSchedules()[0].ScheduleTime.EndTime)
                 {
                     return new HttpResponseMessage { Content = new StringContent("1") };
                 }

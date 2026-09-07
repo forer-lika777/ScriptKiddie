@@ -1,0 +1,79 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>ScriptKiddie.WinUI.Views</RootNamespace>
+    <UseWinUI>true</UseWinUI>
+    <WinUISDKReferences>true</WinUISDKReferences>
+	<LangVersion>14</LangVersion>
+	<Nullable>enable</Nullable>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="ResourceDictionary.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ScriptKiddie.Core\ScriptKiddie.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\CourseInfoPanel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\CourseToWithdrawSelectPanel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\SelectScheduleDeleteConfirmPanel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\SelectScheduleEditPanel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\SelectScheduleSelectPanel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\AccontManagePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\CourseListPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\HomePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\LoginPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\SelectSchedulePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\SettingPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\ShowacasePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Pages\WelcomePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="Assets\100066396_p0.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\winui-hero.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="ResourceDictionary.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+</Project>

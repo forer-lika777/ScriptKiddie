@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>ScriptKiddie.WinUI.UITests</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -12,48 +12,22 @@
     <WinUISDKReferences>true</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
-	<SelfContained>true</SelfContained>
 	<LangVersion>14</LangVersion>
+	<SelfContained>true</SelfContained>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="SandboxPage.xaml" />
-  </ItemGroup>
 
   <ItemGroup>
     <Page Remove="App.xaml" />
     <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockCourseSelectService.cs" Link="Mocks\MockCourseSelectService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockHttpClientProvider.cs" Link="Mocks\MockHttpClientProvider.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockLoginService.cs" Link="Mocks\MockLoginService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\AccontManagePage.xaml.cs" Link="Pages\AccontManagePage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseInfoPanel.xaml.cs" Link="Pages\Controls\CourseInfoPanel.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseToWithdrawSelectPanel.xaml.cs" Link="Pages\Controls\CourseToWithdrawSelectPanel.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml.cs" Link="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleEditPanel.xaml.cs" Link="Pages\Controls\SelectScheduleEditPanel.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleSelectPanel.xaml.cs" Link="Pages\Controls\SelectScheduleSelectPanel.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\CourseListPage.xaml.cs" Link="Pages\CourseListPage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\HomePage.xaml.cs" Link="Pages\HomePage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\LoginPage.xaml.cs" Link="Pages\LoginPage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\MainPage.xaml.cs" Link="Pages\MainPage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\SelectSchedulePage.xaml.cs" Link="Pages\SelectSchedulePage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\SettingPage.xaml.cs" Link="Pages\SettingPage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\ShowacasePage.xaml.cs" Link="Pages\ShowacasePage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Pages\WelcomePage.xaml.cs" Link="Pages\WelcomePage.xaml.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\AnimationService.cs" Link="Services\AnimationService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Services\NavigationService.cs" Link="Services\NavigationService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Services\WindowsAppSettingsService.cs" Link="Services\WindowsAppSettingsService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\BoolToVisibilityConverter.cs" Link="Converters\BoolToVisibilityConverter.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\CourseStatusConverters.cs" Link="Converters\CourseStatusConverters.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\EnumToStringConverter.cs" Link="Converters\EnumToStringConverter.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\InverseBoolConverter.cs" Link="Converters\InverseBoolConverter.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\SelectTypeToIndexConverter.cs" Link="Converters\SelectTypeToIndexConverter.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Utils\Converters\UrlToImageSourceConverter.cs" Link="Converters\UrlToImageSourceConverter.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Utils\TextBlockHelper.cs" Link="TextBlockHelper.cs" />
     <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\ScriptKiddie.WinUI\Assets\100066396_p0.png" Link="Assets\100066396_p0.png" />
     <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\captcha1.png" Link="Mocks\Data\captcha1.png" />
     <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\captcha2.png" Link="Mocks\Data\captcha2.png" />
     <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\SelectableCoursesData.json" Link="Mocks\Data\SelectableCoursesData.json" />
@@ -97,56 +71,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Mocks\Data\" />
-    <Folder Include="Pages\Controls\" />
     <Folder Include="Services\" />
-    <Folder Include="Converters\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\AccontManagePage.xaml" Link="Pages\AccontManagePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseInfoPanel.xaml" Link="Pages\Controls\CourseInfoPanel.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\CourseToWithdrawSelectPanel.xaml" Link="Pages\Controls\CourseToWithdrawSelectPanel.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml" Link="Pages\Controls\SelectScheduleDeleteConfirmPanel.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleEditPanel.xaml" Link="Pages\Controls\SelectScheduleEditPanel.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\Controls\SelectScheduleSelectPanel.xaml" Link="Pages\Controls\SelectScheduleSelectPanel.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\CourseListPage.xaml" Link="Pages\CourseListPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\HomePage.xaml" Link="Pages\HomePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\LoginPage.xaml" Link="Pages\LoginPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\MainPage.xaml" Link="Pages\MainPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\SelectSchedulePage.xaml" Link="Pages\SelectSchedulePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\SettingPage.xaml" Link="Pages\SettingPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\ShowacasePage.xaml" Link="Pages\ShowacasePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="..\ScriptKiddie.WinUI\Pages\WelcomePage.xaml" Link="Pages\WelcomePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ScriptKiddie.Core\ScriptKiddie.Core.csproj" />
+    <ProjectReference Include="..\ScriptKiddie.WinUI.Views\ScriptKiddie.WinUI.Views.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="SandboxPage.xaml">

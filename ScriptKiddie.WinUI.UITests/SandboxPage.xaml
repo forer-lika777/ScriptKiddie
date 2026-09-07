@@ -16,10 +16,17 @@
 
         <StackPanel Grid.Column="0" Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}" Padding="12" Spacing="8">
             <Button Content="WelcomePage" HorizontalAlignment="Stretch" Click="LoadWelcomePage_Click"/>
+            <Button Content="CourseListPage" HorizontalAlignment="Stretch" Click="LoadCourseListPage_Click"/>
+            <Button Content="MainPage" HorizontalAlignment="Stretch" Click="LoadMainPage_Click"/>
+            <Button Content="LoginPage" HorizontalAlignment="Stretch" Click="LoadLoginPage_Click"/>
         </StackPanel>
 
-        <Border Grid.Column="1" Padding="20" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-            <Frame x:Name="ContentFrame"/>
+        <Border Grid.Column="1" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <NavigationView IsBackButtonVisible="Visible" IsBackEnabled="True" IsSettingsVisible="False" IsPaneToggleButtonVisible="False" PaneDisplayMode="LeftCompact" BackRequested="NavigationView_BackRequested">
+                <NavigationView.Content>
+                    <Frame x:Name="ContentFrame"/>
+                </NavigationView.Content>
+            </NavigationView>
         </Border>
     </Grid>
 </Page>
