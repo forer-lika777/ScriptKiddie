@@ -44,31 +44,31 @@ public class MockHttpClientProvider : IHttpClientProvider
 
     private async Task SimulateSelectedCountChanged(CancellationToken cancellationToken)
     {
-        //try
-        //{
-        //    while (true)
-        //    {
-        //        bool completed = true;
-        //        await Task.Delay(1500, cancellationToken);
-        //        foreach (var course in selectableCourses!.Rows)
-        //        {
-        //            if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
-        //            {
-        //                int count = int.Parse(course.SelectedStudentCount!);
-        //                count++;
-        //                course.SelectedStudentCount = count.ToString();
-        //                completed = false;
-        //            }
-        //        }
+        try
+        {
+            while (true)
+            {
+                bool completed = true;
+                await Task.Delay(1500, cancellationToken);
+                foreach (var course in selectableCourses!)
+                {
+                    if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
+                    {
+                        int count = int.Parse(course.SelectedStudentCount!);
+                        count++;
+                        course.SelectedStudentCount = count.ToString();
+                        completed = false;
+                    }
+                }
 
-        //        if (completed)
-        //            return;
-        //    }
-        //}
-        //catch (OperationCanceledException)
-        //{
-        //    logger.LogInformation("请求已终止。");
-        //}
+                if (completed)
+                    return;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("请求已终止。");
+        }
     }
 
     public async Task<int> FetchCourseSelectLimitCountAsync(CancellationToken cancellationToken)
