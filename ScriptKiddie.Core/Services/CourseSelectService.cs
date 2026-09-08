@@ -324,6 +324,10 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         return true;
     }
 
+    /// <summary>
+    /// 发送课程添加失败信息：发送至调试控制台、UI 层。
+    /// </summary>
+    /// <param name="message"></param>
     private async void ReportAddCourseError(string message)
     {
         logger.LogError("添加课程失败：{message}", message);
@@ -426,6 +430,12 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         }
     }
 
+    /// <summary>
+    /// 执行任务。
+    /// </summary>
+    /// <param name="task"></param>
+    /// <returns></returns>
+    /// <exception cref="NullReferenceException"></exception>
     private async Task ExcuteTask(CourseSelectTask task)
     {
         var now = DateTime.Now;
