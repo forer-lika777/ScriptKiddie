@@ -12,7 +12,7 @@ public partial class SelectScheduleSelectPanelModel : ObservableObject
     public SelectScheduleSelectPanelModel(ISelectScheduleProvider selectScheduleProvider)
     {
         this.selectScheduleProvider = selectScheduleProvider;
-        SelectSchedules = selectScheduleProvider.GetSelectSchedules();
+        SelectSchedules = selectScheduleProvider.SelectSchedules;
         SelectedSchedule = SelectSchedules[0];
     }
 

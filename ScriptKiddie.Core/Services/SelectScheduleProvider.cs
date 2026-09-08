@@ -10,12 +10,7 @@ public partial class SelectScheduleProvider : ObservableObject, ISelectScheduleP
     private readonly IAppSettingsService appSettingsService;
 
     [ObservableProperty]
-    public partial ObservableCollection<SelectSchedule> SelectSchedules { get; set; }
-
-    public ObservableCollection<SelectSchedule> GetSelectSchedules()
-    {
-        return this.SelectSchedules;
-    }
+    public partial ObservableCollection<SelectSchedule> SelectSchedules { get; private set; } = [];
 
     public SelectScheduleProvider(IAppSettingsService appSettingsService)
     {

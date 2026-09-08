@@ -12,6 +12,6 @@ public sealed partial class SelectScheduleSelectPanel : UserControl
     public SelectScheduleSelectPanel()
     {
         InitializeComponent();
-        ViewModel = new SelectScheduleSelectPanelModel(AppServices.GetRequiredService<SelectScheduleProvider>());
+        ViewModel = new SelectScheduleSelectPanelModel(AppServices.GetRequiredService<ISelectScheduleProvider>());
     }
 }

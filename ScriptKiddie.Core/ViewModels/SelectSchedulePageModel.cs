@@ -15,7 +15,7 @@ public partial class SelectSchedulePageModel : ObservableObject, IRecipient<Sele
     {
         this.appSettingsService = appSettingsService;
         this.selectScheduleProvider = selectScheduleProvider;
-        SelectSchedules = selectScheduleProvider.GetSelectSchedules();
+        SelectSchedules = selectScheduleProvider.SelectSchedules;
 
         WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
         WeakReferenceMessenger.Default.Register<SelectScheduleAddedMessage>(this);

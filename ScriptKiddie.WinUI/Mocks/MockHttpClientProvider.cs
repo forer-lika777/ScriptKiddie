@@ -103,7 +103,7 @@ public class MockHttpClientProvider : IHttpClientProvider
     {
         await Task.Delay(1500, cancellationToken);
 
-        var selectSchedules = selectScheduleProvider.GetSelectSchedules();
+        var selectSchedules = selectScheduleProvider.SelectSchedules;
         var now = DateTime.Now;
 
         foreach (var schedule in selectSchedules)
@@ -145,7 +145,7 @@ public class MockHttpClientProvider : IHttpClientProvider
     {
         await Task.Delay(1500, cancellationToken);
 
-        var selectSchedules = selectScheduleProvider.GetSelectSchedules();
+        var selectSchedules = selectScheduleProvider.SelectSchedules;
         var now = DateTime.Now;
 
         foreach (var schedule in selectSchedules)

@@ -52,7 +52,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
         this.selectScheduleProvider = selectScheduleProvider;
-        selectSchedules = selectScheduleProvider.GetSelectSchedules();
+        selectSchedules = selectScheduleProvider.SelectSchedules;
 
         if (!WeakReferenceMessenger.Default.IsRegistered<SelectScheduleRemoveMessage>(this))
             WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
@@ -320,7 +320,6 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         return true;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:简化集合初始化", Justification = "<挂起>")]
     public async void Receive(SelectScheduleRemoveMessage message)
     {
         var changedSelectSchedules = message.ChangedSelectSchedules;

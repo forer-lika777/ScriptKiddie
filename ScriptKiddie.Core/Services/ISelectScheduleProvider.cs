@@ -10,7 +10,7 @@ namespace ScriptKiddie.Core.Services;
 
 public interface ISelectScheduleProvider
 {
-    public ObservableCollection<SelectSchedule> GetSelectSchedules();
+    public ObservableCollection<SelectSchedule> SelectSchedules { get; }
     public void Remove(SelectSchedule selectSchedule);
     public Task RemoveRange(IEnumerable<SelectSchedule> selectSchedules);
     public void Remove(int hash);

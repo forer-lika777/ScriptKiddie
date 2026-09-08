@@ -16,7 +16,7 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     {
         this.accountManageService = accountManageService;
         this.selectScheduleProvider = selectScheduleProvider;
-        SelectSchedules = selectScheduleProvider.GetSelectSchedules();
+        SelectSchedules = selectScheduleProvider.SelectSchedules;
         SelectTasks = courseSelectService.SelectTasks;
         _ = SyncCoursesContent();
 
