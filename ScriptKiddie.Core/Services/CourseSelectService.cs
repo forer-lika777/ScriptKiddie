@@ -553,6 +553,28 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         return false;
     }
 
+    /// <summary>
+    /// 启动刷新循环（由第一个任务触发）
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    private void RequestRefreshCourses(CancellationToken cancellationToken)
+    {
+        taskLock.Wait(cancellationToken);
+        try
+        {
+            if (isInternalSyncingCourses)
+                return;
+
+            isInternalSyncingCourses = true;
+            refreshCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _ = RefreshLoopAsync(refreshCts.Token);
+        }
+        finally
+        {
+            taskLock.Release();
+        }
+    }
+
     private async Task<bool> TryWithdrawAndSelect(CourseItem courseToWithdraw, CourseItem selectCourse, CancellationToken cancellationToken)
     {
         if (!await SequentialRequest(courseToWithdraw, OperationType.Withdraw, cancellationToken, 5))
@@ -592,27 +614,6 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
         logger.LogInformation("成功退选并选择目标课程。");
         return true;
-    }
-
-    /// <summary>
-    /// 启动刷新循环（由第一个任务触发）
-    /// </summary>
-    /// <param name="cancellationToken"></param>
-    private void RequestRefreshCourses(CancellationToken cancellationToken)
-    {
-        taskLock.Wait(cancellationToken);
-        try
-        {
-            if (isInternalSyncingCourses)
-                return;
-            isInternalSyncingCourses = true;
-            refreshCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _ = RefreshLoopAsync(refreshCts.Token);
-        }
-        finally
-        {
-            taskLock.Release();
-        }
     }
 
     /// <summary>
