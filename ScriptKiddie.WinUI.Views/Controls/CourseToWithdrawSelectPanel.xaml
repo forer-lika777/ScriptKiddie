@@ -9,13 +9,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel>
-        <TextBlock Text="当前选课数量已经达到限制。可以在下方选出要退选的课程。当目标课程可选时（人数未满时）会退选该课程，然后尝试选择目标课程。"/>
+    <StackPanel Spacing="5">
+        <TextBlock TextWrapping="Wrap" Text="当前选课数量已经达到限制。可以在下方选出要退选的课程。当目标课程可选时（人数未满时）会退选该课程，然后尝试选择目标课程。"/>
         <ListView ItemsSource="{x:Bind ViewModel.SelectedCourses}" SelectedItem="{x:Bind ViewModel.SelectedCourse, Mode=TwoWay}" SelectionMode="Single">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:CourseItem">
-                    <StackPanel>
-                        <TextBlock Text="{x:Bind}"/>
+                    <StackPanel Margin="0, 10">
+                        <TextBlock TextWrapping="Wrap" Text="{x:Bind}"/>
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>
