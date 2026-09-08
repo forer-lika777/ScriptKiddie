@@ -186,7 +186,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     /// <param name="operationType">操作类型（选课、退选）</param>
     public async Task<bool> AddCourseAsync(CourseItem course, SelectSchedule selectSchedule, OperationType operationType)
     {
-        if (!await CheckValidation(course, selectSchedule))
+        if (!await CheckValidation(course, selectSchedule, operationType))
         {
             return false;
         }
@@ -225,7 +225,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     /// <param name="selectSchedule">要关联的时间表</param>
     public async Task<bool> AddCourseAsync(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
     {
-        if (!await CheckValidation(course, selectSchedule))
+        if (!await CheckValidation(course, selectSchedule, OperationType.WithdrawToSelect, courseToWithdraw))
         {
             return false;
         }
@@ -244,7 +244,13 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
         return true;
     }
 
-    private async Task<bool> CheckValidation(CourseItem course, SelectSchedule selectSchedule)
+    /// <summary>
+    /// 检查课程加入是否合法。检查是否课程是否已选、检查是否已存在该课程的任务、检查是否存在时间表、检查时间表是否已结束。
+    /// </summary>
+    /// <param name="course"></param>
+    /// <param name="selectSchedule"></param>
+    /// <returns></returns>
+    private async Task<bool> CheckValidation(CourseItem course, SelectSchedule selectSchedule, OperationType operationType, CourseItem? courseToWithdraw = null)
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         try
@@ -256,10 +262,38 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
             if (selectedCourses is not null)
             {
+                if (operationType == OperationType.Select)
+                {
+                    if (selectedCourses.Contains(course))
+                    {
+                        ReportAddCourseError("你已经选择了该课程。");
+                        return false;
+                    }
+                }
+                else if (operationType == OperationType.Withdraw)
+                {
+                    if (!selectedCourses.Contains(course))
+                    {
+                        ReportAddCourseError("你尚未选择该课程。");
+                        return false;
+                    }
+                }
+                else if (operationType == OperationType.WithdrawToSelect)
+                {
                 if (selectedCourses.Contains(course))
                 {
-                    ReportAddCourseError("你已经选择了该课程");
+                        ReportAddCourseError("你已经选择了该课程。");
                     return false;
+                }
+
+                    if (courseToWithdraw is not null)
+                    {
+                        if (!selectedCourses.Contains(courseToWithdraw))
+                        {
+                            ReportAddCourseError("尚未选择要退选的课程。");
+                            return false;
+            }
+        }
                 }
             }
         }
