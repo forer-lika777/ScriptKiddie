@@ -145,6 +145,12 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
             tcs.SetResult(panel.ViewModel.SelectedCourse);
         };
 
+        dialog.SecondaryButtonClick += async (sender, e) =>
+        {
+            dialog.Hide();
+            tcs.SetCanceled();
+        };
+
         await dialog.ShowAsync();
     }
 
