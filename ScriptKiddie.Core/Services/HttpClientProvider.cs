@@ -104,7 +104,7 @@ public partial class HttpClientProvider : IHttpClientProvider
     public async Task<ObservableCollection<CourseItem>?> FetchSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         int page = 1;
-        int pageSize = 100;
+        int pageSize = 1000;
         int total = -1;
 
         var courses = new ObservableCollection<CourseItem>();
