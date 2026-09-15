@@ -27,3 +27,7 @@ public record RequestConfirmWithdrawCourseMessage(ObservableCollection<CourseIte
 // Select tasks management
 
 public record TaskAddFailedMessage(string Info);
+
+// Sync courses
+
+public record LockSelectableCoursesSyncStatusMessage(bool IsLocked);

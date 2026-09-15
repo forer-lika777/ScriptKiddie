@@ -2,11 +2,8 @@
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
   </Folder>
+  <Project Path="ScriptKiddie.Core.Tests/ScriptKiddie.Core.Tests.csproj" Id="e446070b-e65c-4ae0-9f6f-4b4c09c48afb" />
   <Project Path="ScriptKiddie.Core/ScriptKiddie.Core.csproj" Id="a8e6e0b2-c3b2-4c0a-ba9b-31ca6edae215" />
-  <Project Path="ScriptKiddie.WinUI.Tests/ScriptKiddie.WinUI.Tests.csproj" Id="a3979b93-50d7-470a-a44a-9d6b3166fb1a">
-    <Platform Project="x64" />
-    <Deploy Solution="Release|*" />
-  </Project>
   <Project Path="ScriptKiddie.WinUI.UITests/ScriptKiddie.WinUI.UITests.csproj">
     <Platform Project="x64" />
     <Deploy />

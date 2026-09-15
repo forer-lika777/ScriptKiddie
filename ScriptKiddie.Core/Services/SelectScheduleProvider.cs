@@ -8,13 +8,15 @@ namespace ScriptKiddie.Core.Services;
 public partial class SelectScheduleProvider : ObservableObject, ISelectScheduleProvider
 {
     private readonly IAppSettingsService appSettingsService;
+    private readonly IMessenger messenger;
 
     [ObservableProperty]
     public partial ObservableCollection<SelectSchedule> SelectSchedules { get; private set; } = [];
 
-    public SelectScheduleProvider(IAppSettingsService appSettingsService)
+    public SelectScheduleProvider(IAppSettingsService appSettingsService, IMessenger messenger)
     {
         this.appSettingsService = appSettingsService;
+        this.messenger = messenger;
         SelectSchedules = appSettingsService.SelectSchedules.Value;
     }
 
@@ -29,7 +31,7 @@ public partial class SelectScheduleProvider : ObservableObject, ISelectScheduleP
         var tcs = new TaskCompletionSource();
 
         // 接受方：CourseSelectService、CourseListPageModel
-        WeakReferenceMessenger.Default.Send<SelectScheduleRemoveMessage>(new SelectScheduleRemoveMessage(selectSchedules, tcs));
+        messenger.Send<SelectScheduleRemoveMessage>(new SelectScheduleRemoveMessage(selectSchedules, tcs));
 
         try
         {
@@ -65,7 +67,7 @@ public partial class SelectScheduleProvider : ObservableObject, ISelectScheduleP
     {
         SelectSchedules.Add(schedule);
 
-        WeakReferenceMessenger.Default.Send<SelectScheduleAddedMessage>(new SelectScheduleAddedMessage());
+        messenger.Send<SelectScheduleAddedMessage>(new SelectScheduleAddedMessage());
 
         Update();
     }

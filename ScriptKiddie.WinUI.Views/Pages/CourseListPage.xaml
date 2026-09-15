@@ -41,7 +41,9 @@
                         <TextBlock Text="限选数量："/>
                         <TextBlock Text="{x:Bind ViewModel.SelectLimitCount, Mode=OneWay}"/>
                     </StackPanel>
-                    <CheckBox Content="启用自动刷新" IsChecked="{x:Bind ViewModel.AutoRefresh, Mode=TwoWay}" ToolTipService.ToolTip="启用后，将每隔 1.5 秒自动从网站获取最新的课程数据"/>
+                    <Border ToolTipService.ToolTip="sdfsdfdfs">
+                        <CheckBox Content="启用自动刷新" IsChecked="{x:Bind ViewModel.AutoRefresh, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.CanModifyAutoRefresh, Mode=OneWay}" ToolTipService.ToolTip="启用后，将每隔 1.5 秒自动从网站获取最新的课程数据"/>
+                    </Border>
                 </StackPanel>
                 <SelectorBar x:Name="TabSelectorBar" SelectionChanged="SelectorBar_SelectionChanged"/>
                 <Grid>
@@ -82,7 +84,7 @@
                                             <ColumnDefinition Width="50"/>
                                             <ColumnDefinition Width="170" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind CourseName}" ToolTipService.ToolTip="{x:Bind}"/>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind CourseName}" ToolTipService.ToolTip="{x:Bind DisplayInfo, Mode=OneWay}"/>
                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind ActivityDescription}" ToolTipService.ToolTip="{x:Bind ActivityDescription}"/>
                                         <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind TeacherName}" ToolTipService.ToolTip="{x:Bind TeacherName}"/>
                                         <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{x:Bind SelectedStudentCount, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectedStudentCount, Mode=OneWay}"/>
@@ -181,14 +183,16 @@
                                             <ColumnDefinition Width="120"/>
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="120"/>
-                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="170"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind Course.CourseName}" ToolTipService.ToolTip="{x:Bind Course, Mode=OneWay}"/>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind Course.CourseName}" ToolTipService.ToolTip="{x:Bind Course.DisplayInfo, Mode=OneWay}"/>
                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind Course.CourseCode}" ToolTipService.ToolTip="{x:Bind Course.CourseCode}"/>
                                         <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind OperationType, Converter={StaticResource OperationTypeToStringConverter}}" ToolTipService.ToolTip="{x:Bind OperationType, Converter={StaticResource OperationTypeToStringConverter}}"/>
                                         <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{x:Bind SelectStatus, Converter={StaticResource SelectStatusToStringConverter}, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectStatus, Converter={StaticResource SelectStatusToStringConverter}, Mode=OneWay}"/>
                                         <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="{x:Bind SelectSchedule.Name, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind SelectSchedule.ScheduleTime.ToString(), Mode=OneWay}"/>
-                                        <TextBlock Grid.Column="5" VerticalAlignment="Center" Text="操作"/>
+                                        <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="10" Padding="0, 7, 0, 7">
+                                            <Button VerticalAlignment="Stretch" Content="取消" Command="{x:Bind local:CourseListPage.ViewModelCache.CancelTaskCommand}" CommandParameter="{x:Bind}" IsEnabled="{x:Bind SelectStatus, Converter={StaticResource TaskStatusToBoolConverter}, Mode=OneWay}"/>
+                                        </StackPanel>
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>

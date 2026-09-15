@@ -3,15 +3,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.UI.Xaml;
 #if DEBUG
-using ScriptKiddie.WinUI.Mocks;
+using ScriptKiddie.Core.Mocks;
 #endif
 using ScriptKiddie.WinUI.Services;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.ViewModels;
 using ScriptKiddie.Core.Services;
 using ScriptKiddie.WinUI.Views;
 using ScriptKiddie.WinUI.Views.Pages;
 using System;
 using System.Runtime.InteropServices;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ScriptKiddie.WinUI;
 
@@ -98,6 +100,7 @@ public partial class App : Application
 
         services.AddSingleton<ICourseSelectService, CourseSelectService>();
         services.AddSingleton<IAccountManageService, AccountManageService>();
+        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
         services.AddSingleton<NavigationService>();
     }

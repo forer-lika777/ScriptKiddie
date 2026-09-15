@@ -7,7 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ScriptKiddie.WinUI.Mocks;
+namespace ScriptKiddie.Core.Mocks;
 
 public class MockLoginService : ILoginService
 {

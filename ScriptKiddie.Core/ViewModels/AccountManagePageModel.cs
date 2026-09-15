@@ -10,13 +10,15 @@ public partial class AccountManagePageModel : ObservableObject, IRecipient<Accou
 {
     private readonly IAccountManageService accountManageService;
     private readonly IAppSettingsService appSettingsService;
+    private readonly IMessenger messenger;
 
-    public AccountManagePageModel(IAccountManageService accountManageService, IAppSettingsService appSettingsService)
+    public AccountManagePageModel(IAccountManageService accountManageService, IAppSettingsService appSettingsService, IMessenger messenger)
     {
         this.accountManageService = accountManageService;
         this.appSettingsService = appSettingsService;
+        this.messenger = messenger;
 
-        WeakReferenceMessenger.Default.Register<AccountInfoChangedMessage>(this);
+        messenger.Register<AccountInfoChangedMessage>(this);
 
         RefreshAccountInfo(accountManageService.GetAccountInfo());
     }
@@ -47,7 +49,7 @@ public partial class AccountManagePageModel : ObservableObject, IRecipient<Accou
         if (await accountManageService.LogoutAsync())
         {
             appSettingsService.IsLoggedIn.Value = false;
-            WeakReferenceMessenger.Default.Send<UpdateLoginStatusMessage>(new UpdateLoginStatusMessage(false));
+            messenger.Send<UpdateLoginStatusMessage>(new UpdateLoginStatusMessage(false));
         }
     }
 }

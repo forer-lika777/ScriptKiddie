@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.Models;
 using ScriptKiddie.Core.ViewModels;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace ScriptKiddie.WinUI.Views.Pages;
 public sealed partial class MainPage : Page, IRecipient<UpdateLoginStatusMessage>
 {
     private readonly ILogger<MainPage> logger;
+    private readonly IMessenger messenger;
     private string? currentPageTag = "home";
 
     public MainPageModel ViewModel { get; set; }
@@ -21,6 +23,7 @@ public sealed partial class MainPage : Page, IRecipient<UpdateLoginStatusMessage
 
         logger = AppServices.GetRequiredService<ILogger<MainPage>>();
         ViewModel = AppServices.GetRequiredService<MainPageModel>();
+        messenger = AppServices.GetRequiredService<IMessenger>();
         AppServices.GetRequiredService<NavigationService>().Initialize(MainFrame);
 
         NavigationView.MenuItems.Add(new NavigationViewItem { Content = "开始", Icon = new SymbolIcon(Symbol.Home), Tag = "home" });
@@ -29,7 +32,7 @@ public sealed partial class MainPage : Page, IRecipient<UpdateLoginStatusMessage
         NavigationView.MenuItems.Add(new NavigationViewItem { Content = "关于 WinUI", Icon = new SymbolIcon(Symbol.Find), Tag = "showacase" });
         NavigationView.SelectedItem = NavigationView.MenuItems[0];
 
-        WeakReferenceMessenger.Default.Register<UpdateLoginStatusMessage>(this);
+        messenger.Register<UpdateLoginStatusMessage>(this);
 
         UpdateStatus(ViewModel.IsLoggedIn);
     }
@@ -37,7 +40,7 @@ public sealed partial class MainPage : Page, IRecipient<UpdateLoginStatusMessage
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
-        WeakReferenceMessenger.Default.Unregister<UpdateLoginStatusMessage>(this);
+        messenger.Unregister<UpdateLoginStatusMessage>(this);
     }
 
     public void Receive(UpdateLoginStatusMessage message)

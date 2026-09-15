@@ -15,5 +15,7 @@
     <converters:SelectTypeToStringConverter x:Key="SelectTypeToStringConverter"/>
     <converters:OperationTypeToStringConverter x:Key="OperationTypeToStringConverter"/>
 
+    <converters:TaskStatusToBoolConverter x:Key="TaskStatusToBoolConverter"/>
+
     <FontFamily x:Key="ContentControlThemeFontFamily">Microsoft YaHei UI</FontFamily>
 </ResourceDictionary>

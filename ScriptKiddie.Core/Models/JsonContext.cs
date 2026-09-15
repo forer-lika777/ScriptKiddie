@@ -12,6 +12,7 @@ public partial class CourseResponseJsonContext : JsonSerializerContext
 }
 
 [JsonSerializable(typeof(ObservableCollection<CourseItem>))]
+[JsonSerializable(typeof(List<CourseItem>))]
 public partial class CourseItemListJsonContext : JsonSerializerContext
 {
 

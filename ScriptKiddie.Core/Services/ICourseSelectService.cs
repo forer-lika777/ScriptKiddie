@@ -12,6 +12,8 @@ public interface ICourseSelectService
     public Task<bool> AddCourseAsync(CourseItem course, SelectSchedule selectSchedule, OperationType operationType);
     public Task<bool> AddCourseAsync(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule);
     public bool RemoveCourse(CourseItem course);
-    public Task BeginSyncCourses(CancellationToken cancellationToken);
-    public Task StopSyncCourses();
+    public Task RequestBeginSyncCoursesAsync(CancellationToken cancellationToken);
+    public Task RequestStopSyncCoursesAsync(CancellationToken cancellationToken);
+    public event EventHandler? SelectableCoursesChanged;
+    public event EventHandler? SelectedCoursesChanged;
 }

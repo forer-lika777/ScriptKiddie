@@ -8,12 +8,15 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using Moq;
-using ScriptKiddie.WinUI.Mocks;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.Models;
-using ScriptKiddie.WinUI.Pages;
-using ScriptKiddie.WinUI.Services;
 using ScriptKiddie.Core.Services;
 using ScriptKiddie.Core.ViewModels;
+using ScriptKiddie.Core.Mocks;
+using ScriptKiddie.WinUI.Pages;
+using ScriptKiddie.WinUI.Services;
+using ScriptKiddie.WinUI.Views;
+using ScriptKiddie.WinUI.Views.Pages;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,8 +24,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using ScriptKiddie.WinUI.Views;
-using ScriptKiddie.WinUI.Views.Pages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ScriptKiddie.WinUI.UITests;
 /// <summary>
@@ -54,9 +56,15 @@ public sealed partial class SandboxPage : Page
         services.AddSingleton<ISelectScheduleProvider, SelectScheduleProvider>();
         services.AddSingleton<IHttpClientProvider, MockHttpClientProvider>();
 
+        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+
         var settingService = new Mock<IAppSettingsService>();
         settingService.Setup(a => a.AccountInfo.Value).Returns(() => new AccountInfo());
-        settingService.Setup(a => a.SelectSchedules.Value).Returns(() => []);
+        settingService.Setup(a => a.SelectSchedules.Value).Returns(() => [
+            new SelectSchedule(new ScheduleTime(DateTime.Now + new TimeSpan(0, 0, 30), DateTime.Now + new TimeSpan(1, 0, 0)), "很快开始的时间表"),
+            new SelectSchedule(new ScheduleTime(DateTime.Now - new TimeSpan(0, 0, 30), DateTime.Now + new TimeSpan(1, 0, 0)), "已开始的时间表"),
+            new SelectSchedule(new ScheduleTime(DateTime.Now - new TimeSpan(1, 0, 00), DateTime.Now - new TimeSpan(0, 0, 30)), "已结束的时间表")
+            ]);
         settingService.Setup(a => a.Cookies.Value).Returns(() => []);
         settingService.Setup(a => a.Password.Value).Returns(() => string.Empty);
         settingService.Setup(a => a.IsLoggedIn.Value).Returns(() => isLoggedIn);

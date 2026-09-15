@@ -43,7 +43,7 @@ public partial class CourseSelectTask : ObservableObject
         if (value == OperationType.WithdrawToSelect)
         {
             if (CourseToWithdraw is null)
-                throw new InvalidOperationException("操作类型是退选后选课的任务必须提供要退选的课程。");
+                throw new InvalidOperationException("操作类型是退选后选课的任务，必须提供要退选的课程。");
         }
     }
 

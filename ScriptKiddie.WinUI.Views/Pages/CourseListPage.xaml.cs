@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Navigation;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.Models;
 using ScriptKiddie.Core.ViewModels;
 using ScriptKiddie.WinUI.Pages.Controls;
@@ -18,6 +19,7 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
 {
     private readonly NavigationService navigationService;
     private readonly ILogger<CourseListPage> logger;
+    private readonly IMessenger messenger;
 
     public CourseListPageModel ViewModel { get; set; }
 
@@ -35,10 +37,11 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
         ViewModelCache = ViewModel = AppServices.GetRequiredService<CourseListPageModel>();
         navigationService = AppServices.GetRequiredService<NavigationService>();
         logger = AppServices.GetRequiredService<ILogger<CourseListPage>>();
+        messenger = AppServices.GetRequiredService<IMessenger>();
 
-        WeakReferenceMessenger.Default.Register<RequestChooseSelectScheduleMessage>(this);
-        WeakReferenceMessenger.Default.Register<TaskAddFailedMessage>(this);
-        WeakReferenceMessenger.Default.Register<RequestConfirmWithdrawCourseMessage>(this);
+        messenger.Register<RequestChooseSelectScheduleMessage>(this);
+        messenger.Register<TaskAddFailedMessage>(this);
+        messenger.Register<RequestConfirmWithdrawCourseMessage>(this);
 
         compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
         rootVisual = ElementCompositionPreview.GetElementVisual(this);
@@ -54,9 +57,9 @@ public sealed partial class CourseListPage : Page, IRecipient<RequestChooseSelec
         base.OnNavigatedFrom(e);
         // 离开时将存储的静态值设置为 null，以匹配页面的生命周期
         ViewModelCache = null!;
-        WeakReferenceMessenger.Default.Unregister<RequestChooseSelectScheduleMessage>(this);
-        WeakReferenceMessenger.Default.Unregister<TaskAddFailedMessage>(this);
-        WeakReferenceMessenger.Default.Unregister<RequestConfirmWithdrawCourseMessage>(this);
+        messenger.Unregister<RequestChooseSelectScheduleMessage>(this);
+        messenger.Unregister<TaskAddFailedMessage>(this);
+        messenger.Unregister<RequestConfirmWithdrawCourseMessage>(this);
     }
 
     private async void ViewMoreButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

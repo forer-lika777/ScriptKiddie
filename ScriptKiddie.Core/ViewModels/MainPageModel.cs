@@ -7,9 +7,12 @@ namespace ScriptKiddie.Core.ViewModels;
 
 public partial class MainPageModel : ObservableObject, IRecipient<UpdateLoginStatusMessage>
 {
-    public MainPageModel(IAppSettingsService appSettingsService)
+    private readonly IMessenger messenger;
+
+    public MainPageModel(IAppSettingsService appSettingsService, IMessenger messenger)
     {
-        WeakReferenceMessenger.Default.Register<UpdateLoginStatusMessage>(this);
+        this.messenger = messenger;
+        messenger.Register<UpdateLoginStatusMessage>(this);
 
         IsLoggedIn = appSettingsService.IsLoggedIn.Value;
     }

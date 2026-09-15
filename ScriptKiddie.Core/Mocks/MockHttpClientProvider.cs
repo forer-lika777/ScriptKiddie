@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using ScriptKiddie.Core.Models;
 using ScriptKiddie.Core.Services;
-using ScriptKiddie.WinUI.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,20 +10,21 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ScriptKiddie.WinUI.Mocks;
+namespace ScriptKiddie.Core.Mocks;
 
 public class MockHttpClientProvider : IHttpClientProvider
 {
-    private readonly ISelectScheduleProvider selectScheduleProvider = AppServices.GetRequiredService<ISelectScheduleProvider>();
+    private readonly ISelectScheduleProvider selectScheduleProvider;
     private readonly ILogger<MockHttpClientProvider> logger;
 
     private CookieCollection cookies = [];
     private ObservableCollection<CourseItem>? selectableCourses = null;
     private ObservableCollection<CourseItem>? selectedCourses = null;
 
-    public MockHttpClientProvider(ILogger<MockHttpClientProvider> logger)
+    public MockHttpClientProvider(ILogger<MockHttpClientProvider> logger, ISelectScheduleProvider selectScheduleProvider)
     {
         this.logger = logger;
+        this.selectScheduleProvider = selectScheduleProvider;
         SetSelectableCourses();
         SetSelectedCourses();
         _ = SimulateSelectedCountChanged(CancellationToken.None);
@@ -34,12 +34,26 @@ public class MockHttpClientProvider : IHttpClientProvider
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectableCoursesData.json"));
         selectableCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
+        SyncActualSideSelectedCountToMockSide(ref selectableCourses!);
     }
 
     private void SetSelectedCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectedCoursesData.json"));
         selectedCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
+        SyncActualSideSelectedCountToMockSide(ref selectedCourses!);
+    }
+
+    public void SetSelectableCourses(ObservableCollection<CourseItem> courses)
+    {
+        selectableCourses = new ObservableCollection<CourseItem>(courses);
+        SyncActualSideSelectedCountToMockSide(ref selectableCourses!);
+    }
+
+    public void SetSelectedCourses(ObservableCollection<CourseItem> courses)
+    {
+        selectedCourses = new ObservableCollection<CourseItem>(courses);
+        SyncActualSideSelectedCountToMockSide(ref selectedCourses!);
     }
 
     private async Task SimulateSelectedCountChanged(CancellationToken cancellationToken)
@@ -48,15 +62,16 @@ public class MockHttpClientProvider : IHttpClientProvider
         {
             while (true)
             {
-                bool completed = true;
                 await Task.Delay(1500, cancellationToken);
+
+                bool completed = true;
                 foreach (var course in selectableCourses!)
                 {
-                    if (int.Parse(course.SelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
+                    if (int.Parse(course.MockSideSelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
                     {
-                        int count = int.Parse(course.SelectedStudentCount!);
+                        int count = int.Parse(course.MockSideSelectedStudentCount!);
                         count++;
-                        course.SelectedStudentCount = count.ToString();
+                        course.MockSideSelectedStudentCount = count.ToString();
                         completed = false;
                     }
                 }
@@ -80,13 +95,37 @@ public class MockHttpClientProvider : IHttpClientProvider
     public async Task<ObservableCollection<CourseItem>?> FetchSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         await Task.Delay(700, cancellationToken);
+        SyncMockSideSelectedCountToActual(ref selectableCourses!);
+
         return selectableCourses!;
     }
 
     public async Task<ObservableCollection<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken)
     {
         await Task.Delay(1000, cancellationToken);
+        SyncMockSideSelectedCountToActual(ref selectedCourses!);
+
         return selectedCourses!;
+    }
+
+    private void SyncMockSideSelectedCountToActual(ref ObservableCollection<CourseItem> courses)
+    {
+        foreach (var course in courses)
+        {
+            var ctx = SynchronizationContext.Current;
+
+            ctx?.Post(_ => course.SelectedStudentCount = course.MockSideSelectedStudentCount, null);
+        }
+    }
+
+    private void SyncActualSideSelectedCountToMockSide(ref ObservableCollection<CourseItem> courses)
+    {
+        foreach (var course in courses)
+        {
+            var ctx = SynchronizationContext.Current;
+
+            ctx?.Post(_ => course.MockSideSelectedStudentCount = course.SelectedStudentCount, null);
+        }
     }
 
     public CookieCollection GetCookies()
@@ -123,6 +162,24 @@ public class MockHttpClientProvider : IHttpClientProvider
                     return new HttpResponseMessage
                     {
                         Content = new StringContent("您已经选了该门课程")
+                    };
+                }
+
+                var c = selectableCourses?.Where(x => x.Equals(course)).FirstOrDefault();
+
+                if (c is null)
+                {
+                    return new HttpResponseMessage
+                    {
+                        Content = new StringContent("没有找到课程。")
+                    };
+                }
+
+                if (int.Parse(c.SelectedStudentCount!) >= int.Parse(c.PlannedStudentCount!))
+                {
+                    return new HttpResponseMessage
+                    {
+                        Content = new StringContent("选课人数超出，请选其他课程")
                     };
                 }
 

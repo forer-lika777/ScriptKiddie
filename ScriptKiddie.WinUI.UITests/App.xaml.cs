@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
+using ScriptKiddie.Core;
 using ScriptKiddie.WinUI.UITests;
 using ScriptKiddie.WinUI.Views;
 using System;

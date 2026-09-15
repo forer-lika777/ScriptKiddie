@@ -10,8 +10,8 @@ public interface IAccountManageService
     public AccountInfo? GetAccountInfo();
     public Task<ObservableCollection<CourseItem>?> GetSelectableCoursesAsync();
     public Task<ObservableCollection<CourseItem>?> GetSelectedCoursesAsync();
-    public Task BeginSyncCourses();
-    public Task StopSyncCourses();
+    public Task BeginSyncCoursesAsync();
+    public Task StopSyncCoursesAsync();
     public Task<bool> AddCourseAsync(CourseItem course, SelectSchedule schedule, OperationType operationType);
     public Task<bool> AddCourseAsync(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule);
     public bool RemoveCourse(CourseItem course);

@@ -7,41 +7,72 @@ using System.Collections.ObjectModel;
 
 namespace ScriptKiddie.Core.ViewModels;
 
-public partial class CourseListPageModel : ObservableObject, IRecipient<SelectScheduleRemoveMessage>, IRecipient<SelectScheduleAddedMessage>
+public partial class CourseListPageModel : ObservableObject, IRecipient<SelectScheduleRemoveMessage>, IRecipient<SelectScheduleAddedMessage>, IRecipient<LockSelectableCoursesSyncStatusMessage>
 {
+    private readonly ICourseSelectService courseSelectService;
     private readonly IAccountManageService accountManageService;
     private readonly ISelectScheduleProvider selectScheduleProvider;
+    private readonly IMessenger messenger;
 
-    public CourseListPageModel(ICourseSelectService courseSelectService, IAccountManageService accountManageService, ISelectScheduleProvider selectScheduleProvider)
+    public CourseListPageModel(ICourseSelectService courseSelectService, IAccountManageService accountManageService, ISelectScheduleProvider selectScheduleProvider, IMessenger messenger)
     {
+        this.courseSelectService = courseSelectService;
         this.accountManageService = accountManageService;
         this.selectScheduleProvider = selectScheduleProvider;
+        this.messenger = messenger;
         SelectSchedules = selectScheduleProvider.SelectSchedules;
         SelectTasks = courseSelectService.SelectTasks;
         _ = SyncCoursesContent();
 
-        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
-        WeakReferenceMessenger.Default.Register<SelectScheduleAddedMessage>(this);
+        messenger.Register<SelectScheduleRemoveMessage>(this);
+        messenger.Register<SelectScheduleAddedMessage>(this);
+        messenger.Register<LockSelectableCoursesSyncStatusMessage>(this);
     }
 
     [RelayCommand]
     private async Task SyncCoursesContent()
     {
-        var selectableCourses = await accountManageService.GetSelectableCoursesAsync();
-        if (selectableCourses is not null)
-            SelectableCourses = selectableCourses;
-
-        var selectedCourses = await accountManageService.GetSelectedCoursesAsync();
-        if (selectedCourses is not null)
-            SelectedCourses = selectedCourses;
-
-        var limitCount = await accountManageService.GetSelectLimitCountAsync();
-        if (limitCount is not null)
-            SelectLimitCount = (int)limitCount;
+        await SetSelectableCoursesAsync();
+        await SetSelectedCoursesAsync();
+        await SetSelectLimitCountAsync();
 
         IsLoading = false;
 
-        _ = accountManageService.BeginSyncCourses();
+        courseSelectService.SelectedCoursesChanged += CourseSelectService_SelectedCoursesChanged;
+        courseSelectService.SelectableCoursesChanged += CourseSelectService_SelectableCoursesChanged;
+
+        _ = accountManageService.BeginSyncCoursesAsync();
+    }
+
+    private async Task SetSelectableCoursesAsync()
+    {
+        var selectableCourses = await accountManageService.GetSelectableCoursesAsync();
+        if (selectableCourses is not null)
+            SelectableCourses = selectableCourses;
+    }
+
+    private async Task SetSelectedCoursesAsync()
+    {
+        var selectedCourses = await accountManageService.GetSelectedCoursesAsync();
+        if (selectedCourses is not null)
+            SelectedCourses = selectedCourses;
+    }
+
+    private async Task SetSelectLimitCountAsync()
+    {
+        var limitCount = await accountManageService.GetSelectLimitCountAsync();
+        if (limitCount is not null)
+            SelectLimitCount = (int)limitCount;
+    }
+
+    private async void CourseSelectService_SelectableCoursesChanged(object? sender, EventArgs e)
+    {
+        await SetSelectableCoursesAsync();
+    }
+
+    private async void CourseSelectService_SelectedCoursesChanged(object? sender, EventArgs e)
+    {
+        await SetSelectedCoursesAsync();
     }
 
     [ObservableProperty]
@@ -81,17 +112,27 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     [ObservableProperty]
     public partial bool AutoRefresh { get; set; } = true;
 
+    private bool originAutoRefreshValue = true;
+
     async partial void OnAutoRefreshChanged(bool value)
     {
-        if (AutoRefresh)
+        if (CanModifyAutoRefresh)
         {
-            await accountManageService.BeginSyncCourses();
-        }
-        else
-        {
-            await accountManageService.StopSyncCourses();
+            originAutoRefreshValue = AutoRefresh;
+
+            if (AutoRefresh)
+            {
+                await accountManageService.BeginSyncCoursesAsync();
+            }
+            else
+            {
+                await accountManageService.StopSyncCoursesAsync();
+            }
         }
     }
+
+    [ObservableProperty]
+    public partial bool CanModifyAutoRefresh { get; set; } = true;
 
     public async void Receive(SelectScheduleRemoveMessage message)
     {
@@ -137,7 +178,7 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     private async Task AddCourse(CourseItem course)
     {
         var selectScheduleTcs = new TaskCompletionSource<SelectSchedule>();
-        WeakReferenceMessenger.Default.Send<RequestChooseSelectScheduleMessage>(new RequestChooseSelectScheduleMessage(selectScheduleTcs));
+        messenger.Send<RequestChooseSelectScheduleMessage>(new RequestChooseSelectScheduleMessage(selectScheduleTcs));
 
         SelectSchedule? schedule;
 
@@ -156,7 +197,7 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
         if (SelectedCourses.Count >= SelectLimitCount)
         {
             var confirmCourseTcs = new TaskCompletionSource<CourseItem>();
-            WeakReferenceMessenger.Default.Send<RequestConfirmWithdrawCourseMessage>(new RequestConfirmWithdrawCourseMessage(SelectedCourses, confirmCourseTcs));
+            messenger.Send<RequestConfirmWithdrawCourseMessage>(new RequestConfirmWithdrawCourseMessage(SelectedCourses, confirmCourseTcs));
 
             CourseItem? courseToWithdraw;
 
@@ -184,7 +225,7 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
     private async Task WithdrawCourse(CourseItem course)
     {
         var selectScheduleTcs = new TaskCompletionSource<SelectSchedule>();
-        WeakReferenceMessenger.Default.Send<RequestChooseSelectScheduleMessage>(new RequestChooseSelectScheduleMessage(selectScheduleTcs));
+        messenger.Send<RequestChooseSelectScheduleMessage>(new RequestChooseSelectScheduleMessage(selectScheduleTcs));
 
         SelectSchedule? schedule;
 
@@ -201,5 +242,26 @@ public partial class CourseListPageModel : ObservableObject, IRecipient<SelectSc
             return;
 
         await accountManageService.AddCourseAsync(course, schedule, OperationType.Withdraw);
+    }
+
+    [RelayCommand]
+    private async Task CancelTask(CourseSelectTask task)
+    {
+        task.Cts.Cancel();
+    }
+
+    public void Receive(LockSelectableCoursesSyncStatusMessage message)
+    {
+        CanModifyAutoRefresh = !message.IsLocked;
+
+        if (CanModifyAutoRefresh)
+        {
+            AutoRefresh = originAutoRefreshValue;
+            OnAutoRefreshChanged(AutoRefresh);
+        }
+        else
+        {
+            AutoRefresh = true;
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml.Controls;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.Services;
 using ScriptKiddie.Core.ViewModels;
 using ScriptKiddie.WinUI.Views;

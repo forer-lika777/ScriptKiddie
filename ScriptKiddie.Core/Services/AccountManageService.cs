@@ -11,6 +11,7 @@ public partial class AccountManageService : IAccountManageService
     private readonly ICourseSelectService courseSelectService;
     private readonly IAppSettingsService appSettingsService;
     private readonly IHttpClientProvider httpClientProvider;
+    private readonly IMessenger messenger;
 
     private readonly ILogger<AccountManageService> logger;
 
@@ -22,13 +23,14 @@ public partial class AccountManageService : IAccountManageService
 
     private bool isLoggedIn = false;
 
-    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, IAppSettingsService appSettingsService, IHttpClientProvider httpClientProvider, ILogger<AccountManageService> logger)
+    public AccountManageService(ILoginService loginService, ICourseSelectService courseSelectService, IAppSettingsService appSettingsService, IHttpClientProvider httpClientProvider, ILogger<AccountManageService> logger, IMessenger messenger)
     {
         this.loginService = loginService;
         this.courseSelectService = courseSelectService;
         this.appSettingsService = appSettingsService;
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
+        this.messenger = messenger;
         Init();
     }
 
@@ -64,7 +66,9 @@ public partial class AccountManageService : IAccountManageService
                 {
                     isLoggedIn = true;
 
-                    //WeakReferenceMessenger.Default.Send<AccountInfoChangedMessage>(new AccountInfoChangedMessage(accountInfo));
+                    //messenger.Send<AccountInfoChangedMessage>(new AccountInfoChangedMessage(accountInfo));
+
+                    logger.LogInformation("自动登录成功。");
 
                     loginTcs?.TrySetResult(true);
                     loginTcs = null; // 清理
@@ -78,7 +82,7 @@ public partial class AccountManageService : IAccountManageService
                 if (result.NeedCaptcha)
                 {
                     logger.LogError("请返回登录页面输入验证码，然后重新登录到账户。");
-                    WeakReferenceMessenger.Default.Send<AutoLoginFailedNeedCaptchaMessage>(new AutoLoginFailedNeedCaptchaMessage());
+                    messenger.Send<AutoLoginFailedNeedCaptchaMessage>(new AutoLoginFailedNeedCaptchaMessage());
                     break;
                 }
 
@@ -129,7 +133,7 @@ public partial class AccountManageService : IAccountManageService
 
             ResetCts(ref loggedOutCts);
 
-            WeakReferenceMessenger.Default.Send<AccountInfoChangedMessage>(new AccountInfoChangedMessage(accountInfo));
+            messenger.Send<AccountInfoChangedMessage>(new AccountInfoChangedMessage(accountInfo));
         }
         else
         {
@@ -180,23 +184,35 @@ public partial class AccountManageService : IAccountManageService
         return await courseSelectService.GetSelectedCoursesAsync(loggedOutCts!.Token);
     }
 
-    public async Task BeginSyncCourses()
+    public async Task BeginSyncCoursesAsync()
     {
-        _ = courseSelectService.BeginSyncCourses(loggedOutCts!.Token);
+        if (!await EnsureLoggedInAsync())
+            return;
+
+        await courseSelectService.RequestBeginSyncCoursesAsync(loggedOutCts!.Token);
     }
 
-    public async Task StopSyncCourses()
+    public async Task StopSyncCoursesAsync()
     {
-        _ = courseSelectService.StopSyncCourses();
+        if (!await EnsureLoggedInAsync())
+            return;
+
+        await courseSelectService.RequestStopSyncCoursesAsync(loggedOutCts!.Token);
     }
 
     public async Task<bool> AddCourseAsync(CourseItem course, SelectSchedule schedule, OperationType operationType)
     {
+        if (!await EnsureLoggedInAsync())
+            return false;
+
         return await courseSelectService.AddCourseAsync(course, schedule, operationType);
     }
 
     public async Task<bool> AddCourseAsync(CourseItem course, CourseItem courseToWithdraw, SelectSchedule selectSchedule)
     {
+        if (!await EnsureLoggedInAsync())
+            return false;
+
         return await courseSelectService.AddCourseAsync(course, courseToWithdraw, selectSchedule);
     }
 

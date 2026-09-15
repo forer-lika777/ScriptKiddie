@@ -9,6 +9,7 @@ namespace ScriptKiddie.Core.ViewModels;
 public partial class LoginPageModel : ObservableObject
 {
     private readonly IAccountManageService accountManageService;
+    private readonly IMessenger messenger;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(UserNameError))]
@@ -87,9 +88,10 @@ public partial class LoginPageModel : ObservableObject
 
     private bool CanLogin() => UserNameError.Success && PasswordError.Success && CaptchaError.Success && userNameBeenValid && passwordBeenValid && captchaBeenValid;
 
-    public LoginPageModel(IAccountManageService accountManageService)
+    public LoginPageModel(IAccountManageService accountManageService, IMessenger messenger)
     {
         this.accountManageService = accountManageService;
+        this.messenger = messenger;
     }
 
     [RelayCommand(CanExecute = nameof(CanLogin))]
@@ -109,7 +111,7 @@ public partial class LoginPageModel : ObservableObject
 
         if (result.Success)
         {
-            WeakReferenceMessenger.Default.Send(new UpdateLoginStatusMessage(true));
+            messenger.Send(new UpdateLoginStatusMessage(true));
             return;
         }
 

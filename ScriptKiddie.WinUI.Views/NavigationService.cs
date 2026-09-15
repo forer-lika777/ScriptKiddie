@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using ScriptKiddie.Core;
 
 namespace ScriptKiddie.WinUI.Views;
 

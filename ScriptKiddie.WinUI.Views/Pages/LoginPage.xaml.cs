@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.ViewModels;
 using Windows.System;
 

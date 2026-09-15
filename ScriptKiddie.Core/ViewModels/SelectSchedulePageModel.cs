@@ -10,15 +10,17 @@ public partial class SelectSchedulePageModel : ObservableObject, IRecipient<Sele
 {
     private readonly IAppSettingsService appSettingsService;
     private readonly ISelectScheduleProvider selectScheduleProvider;
+    private readonly IMessenger messenger;
 
-    public SelectSchedulePageModel(IAppSettingsService appSettingsService, ISelectScheduleProvider selectScheduleProvider)
+    public SelectSchedulePageModel(IAppSettingsService appSettingsService, ISelectScheduleProvider selectScheduleProvider, IMessenger messenger)
     {
         this.appSettingsService = appSettingsService;
         this.selectScheduleProvider = selectScheduleProvider;
+        this.messenger = messenger;
         SelectSchedules = selectScheduleProvider.SelectSchedules;
 
-        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveMessage>(this);
-        WeakReferenceMessenger.Default.Register<SelectScheduleAddedMessage>(this);
+        messenger.Register<SelectScheduleRemoveMessage>(this);
+        messenger.Register<SelectScheduleAddedMessage>(this);
     }
 
     [ObservableProperty]

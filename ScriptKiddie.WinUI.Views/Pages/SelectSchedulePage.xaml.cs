@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.Models;
 using ScriptKiddie.Core.Services;
 using ScriptKiddie.Core.ViewModels;
@@ -15,6 +16,7 @@ public sealed partial class SelectSchedulePage : Page, IRecipient<SelectSchedule
 {
     private readonly ISelectScheduleProvider selectScheduleProvider;
     private readonly ICourseSelectService courseSelectService;
+    private readonly IMessenger messenger;
 
     public SelectSchedulePageModel ViewModel { get; set; }
 
@@ -24,8 +26,9 @@ public sealed partial class SelectSchedulePage : Page, IRecipient<SelectSchedule
         courseSelectService = AppServices.GetRequiredService<ICourseSelectService>();
         selectScheduleProvider = AppServices.GetRequiredService<ISelectScheduleProvider>();
         ViewModel = AppServices.GetRequiredService<SelectSchedulePageModel>();
+        messenger = AppServices.GetRequiredService<IMessenger>();
 
-        WeakReferenceMessenger.Default.Register<SelectScheduleRemoveConfirmMessage>(this);
+        messenger.Register<SelectScheduleRemoveConfirmMessage>(this);
 
         RefreshCommandButtonStatus();
     }
@@ -33,7 +36,7 @@ public sealed partial class SelectSchedulePage : Page, IRecipient<SelectSchedule
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
-        WeakReferenceMessenger.Default.Unregister<SelectScheduleRemoveConfirmMessage>(this);
+        messenger.Unregister<SelectScheduleRemoveConfirmMessage>(this);
     }
 
     private void AddButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

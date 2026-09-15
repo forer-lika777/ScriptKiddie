@@ -19,19 +19,12 @@
 
   <ItemGroup>
     <Page Remove="App.xaml" />
-    <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockCourseSelectService.cs" Link="Mocks\MockCourseSelectService.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockHttpClientProvider.cs" Link="Mocks\MockHttpClientProvider.cs" />
-    <Compile Include="..\ScriptKiddie.WinUI\Mocks\MockLoginService.cs" Link="Mocks\MockLoginService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Services\WindowsAppSettingsService.cs" Link="Services\WindowsAppSettingsService.cs" />
     <Compile Include="..\ScriptKiddie.WinUI\Utils\TextBlockHelper.cs" Link="TextBlockHelper.cs" />
     <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\captcha1.png" Link="Mocks\Data\captcha1.png" />
-    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\captcha2.png" Link="Mocks\Data\captcha2.png" />
-    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\SelectableCoursesData.json" Link="Mocks\Data\SelectableCoursesData.json" />
-    <Content Include="..\ScriptKiddie.WinUI\Mocks\Data\SelectedCoursesData.json" Link="Mocks\Data\SelectedCoursesData.json" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
@@ -56,12 +49,12 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.9.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.12" />
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.10.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
@@ -70,7 +63,6 @@
     <PackageReference Include="MSTest.TestFramework" Version="4.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Mocks\Data\" />
     <Folder Include="Services\" />
   </ItemGroup>
   <ItemGroup>
@@ -99,4 +91,7 @@
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed>False</PublishTrimmed>
   </PropertyGroup>
+  <ItemGroup>
+    <PRIResource Remove="Mocks\**" />
+  </ItemGroup>
 </Project>

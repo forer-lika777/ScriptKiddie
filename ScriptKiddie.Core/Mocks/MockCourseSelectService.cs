@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ScriptKiddie.WinUI.Mocks;
+namespace ScriptKiddie.Core.Mocks;
 
 public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectScheduleRemoveMessage>
 {
@@ -23,6 +23,9 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
     private ObservableCollection<CourseSelectTask> selectTasks = [];
 
     private CancellationTokenSource? cancellationTokenSource;
+
+    public event EventHandler? SelectableCoursesChanged;
+    public event EventHandler? SelectedCoursesChanged;
 
     public MockCourseSelectService(IHttpClientProvider httpClientProvider, ILogger<MockCourseSelectService> logger, ISelectScheduleProvider selectScheduleProvider)
     {
@@ -166,5 +169,15 @@ public class MockCourseSelectService : ICourseSelectService, IRecipient<SelectSc
     public void Receive(SelectScheduleRemoveMessage message)
     {
 
+    }
+
+    public Task RequestBeginSyncCoursesAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task RequestStopSyncCoursesAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

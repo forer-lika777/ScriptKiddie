@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using ScriptKiddie.Core;
 using ScriptKiddie.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ public sealed partial class WelcomePage : Page, IRecipient<UpdateLoginStatusMess
     private readonly List<string> tabTags = ["tab1", "tab2", "tab3"];
     private readonly List<string> tabNames = ["欢迎", "使用说明", "账户登录"];
     private readonly NavigationService navigationService;
+    private readonly IMessenger messenger;
 
     private string currentTabTag;
 
@@ -24,6 +26,7 @@ public sealed partial class WelcomePage : Page, IRecipient<UpdateLoginStatusMess
     public WelcomePage()
     {
         InitializeComponent();
+        messenger = AppServices.GetRequiredService<IMessenger>();
         currentTabTag = tabTags[0];
         PreviousButton.Visibility = Visibility.Collapsed;
         navigationService = AppServices.GetRequiredService<NavigationService>();
@@ -37,13 +40,13 @@ public sealed partial class WelcomePage : Page, IRecipient<UpdateLoginStatusMess
         Tab2Content.Visibility = Visibility.Collapsed;
         Tab3Content.Visibility = Visibility.Collapsed;
 
-        WeakReferenceMessenger.Default.Register<UpdateLoginStatusMessage>(this);
+        messenger.Register<UpdateLoginStatusMessage>(this);
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
-        WeakReferenceMessenger.Default.Unregister<UpdateLoginStatusMessage>(this);
+        messenger.Unregister<UpdateLoginStatusMessage>(this);
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
