@@ -14,6 +14,7 @@ using ScriptKiddie.WinUI.Views.Pages;
 using System;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.UI.Dispatching;
 
 namespace ScriptKiddie.WinUI;
 
@@ -101,6 +102,7 @@ public partial class App : Application
         services.AddSingleton<ICourseSelectService, CourseSelectService>();
         services.AddSingleton<IAccountManageService, AccountManageService>();
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        services.AddSingleton<IUiDispatcher>(sp => new WinUIDispatcher(DispatcherQueue.GetForCurrentThread()));
 
         services.AddSingleton<NavigationService>();
     }

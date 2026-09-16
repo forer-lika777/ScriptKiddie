@@ -57,6 +57,7 @@ public sealed partial class SandboxPage : Page
         services.AddSingleton<IHttpClientProvider, MockHttpClientProvider>();
 
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        services.AddSingleton<IUiDispatcher>(sp => new WinUIDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread()));
 
         var settingService = new Mock<IAppSettingsService>();
         settingService.Setup(a => a.AccountInfo.Value).Returns(() => new AccountInfo());

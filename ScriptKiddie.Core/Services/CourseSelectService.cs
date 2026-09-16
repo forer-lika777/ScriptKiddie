@@ -15,6 +15,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
     private readonly ISelectScheduleProvider selectScheduleProvider;
     private readonly ILogger<CourseSelectService> logger;
     private readonly IMessenger messenger;
+    private readonly IUiDispatcher dispatcher;
 
     //private readonly SemaphoreSlim requestBeginSyncCoursesSemaphore = new SemaphoreSlim(1, 1);
     //private readonly SemaphoreSlim requestStopSyncCoursesSemaphore = new SemaphoreSlim(1, 1);
@@ -56,12 +57,13 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
     private int selectCountLimit;
 
-    public CourseSelectService(IHttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger, ISelectScheduleProvider selectScheduleProvider, IMessenger messenger)
+    public CourseSelectService(IHttpClientProvider httpClientProvider, ILogger<CourseSelectService> logger, ISelectScheduleProvider selectScheduleProvider, IMessenger messenger, IUiDispatcher dispatcher)
     {
         this.httpClientProvider = httpClientProvider;
         this.logger = logger;
         this.selectScheduleProvider = selectScheduleProvider;
         this.messenger = messenger;
+        this.dispatcher = dispatcher;
         selectSchedules = selectScheduleProvider.SelectSchedules;
 
         messenger.Register<SelectScheduleRemoveMessage>(this);
@@ -193,15 +195,11 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
                 if (existing is null)
                 {
-                    var ctx = SynchronizationContext.Current;
-
-                    ctx?.Post(_ => selectableCourses.Add(course), null);
+                    await dispatcher.InvokeAsync(() => selectableCourses.Add(course));
                 }
                 else
                 {
-                    var ctx = SynchronizationContext.Current;
-
-                    ctx?.Post(_ => existing.SelectedStudentCount = course.SelectedStudentCount, null);
+                    await dispatcher.InvokeAsync(() => existing.SelectedStudentCount = course.SelectedStudentCount);
                 }
             }
 
@@ -211,9 +209,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
             foreach (var item in toRemove)
             {
-                var ctx = SynchronizationContext.Current;
-
-                ctx?.Post(_ => selectableCourses.Remove(item), null);
+                await dispatcher.InvokeAsync(() => selectableCourses.Remove(item));
             }
 
             return true;
@@ -254,15 +250,11 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
                 if (existing is null)
                 {
-                    var ctx = SynchronizationContext.Current;
-
-                    ctx?.Post(_ => selectedCourses.Add(course), null);
+                    await dispatcher.InvokeAsync(() => selectedCourses.Add(course));
                 }
                 else
                 {
-                    var ctx = SynchronizationContext.Current;
-
-                    ctx?.Post(_ => existing.SelectedStudentCount = course.SelectedStudentCount, null);
+                    await dispatcher.InvokeAsync(() => existing.SelectedStudentCount = course.SelectedStudentCount);
                 }
             }
 
@@ -272,9 +264,7 @@ public partial class CourseSelectService : ICourseSelectService, IRecipient<Sele
 
             foreach (var item in toRemove)
             {
-                var ctx = SynchronizationContext.Current;
-
-                ctx?.Post(_ => selectedCourses.Remove(item), null);
+                await dispatcher.InvokeAsync(() => selectedCourses.Remove(item));
             }
 
             return true;

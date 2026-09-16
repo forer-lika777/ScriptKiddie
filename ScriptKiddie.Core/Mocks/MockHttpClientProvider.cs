@@ -16,44 +16,46 @@ public class MockHttpClientProvider : IHttpClientProvider
 {
     private readonly ISelectScheduleProvider selectScheduleProvider;
     private readonly ILogger<MockHttpClientProvider> logger;
+    private readonly IUiDispatcher dispatcher;
 
     private CookieCollection cookies = [];
     private ObservableCollection<CourseItem>? selectableCourses = null;
     private ObservableCollection<CourseItem>? selectedCourses = null;
 
-    public MockHttpClientProvider(ILogger<MockHttpClientProvider> logger, ISelectScheduleProvider selectScheduleProvider)
+    public MockHttpClientProvider(ILogger<MockHttpClientProvider> logger, ISelectScheduleProvider selectScheduleProvider, IUiDispatcher dispatcher)
     {
         this.logger = logger;
         this.selectScheduleProvider = selectScheduleProvider;
+        this.dispatcher = dispatcher;
         SetSelectableCourses();
         SetSelectedCourses();
         _ = SimulateSelectedCountChanged(CancellationToken.None);
     }
 
-    private void SetSelectableCourses()
+    private async void SetSelectableCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectableCoursesData.json"));
         selectableCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
-        SyncActualSideSelectedCountToMockSide(ref selectableCourses!);
+        await SyncActualSideSelectedCountToMockSide(selectableCourses!);
     }
 
-    private void SetSelectedCourses()
+    private async void SetSelectedCourses()
     {
         string content = File.ReadAllText(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Mocks", "Data", "SelectedCoursesData.json"));
         selectedCourses = (ObservableCollection<CourseItem>?)JsonSerializer.Deserialize(content, typeof(ObservableCollection<CourseItem>), CourseItemListJsonContext.Default);
-        SyncActualSideSelectedCountToMockSide(ref selectedCourses!);
+        await SyncActualSideSelectedCountToMockSide(selectedCourses!);
     }
 
-    public void SetSelectableCourses(ObservableCollection<CourseItem> courses)
+    public async void SetSelectableCourses(ObservableCollection<CourseItem> courses)
     {
         selectableCourses = new ObservableCollection<CourseItem>(courses);
-        SyncActualSideSelectedCountToMockSide(ref selectableCourses!);
+        await SyncActualSideSelectedCountToMockSide(selectableCourses!);
     }
 
-    public void SetSelectedCourses(ObservableCollection<CourseItem> courses)
+    public async void SetSelectedCourses(ObservableCollection<CourseItem> courses)
     {
         selectedCourses = new ObservableCollection<CourseItem>(courses);
-        SyncActualSideSelectedCountToMockSide(ref selectedCourses!);
+        await SyncActualSideSelectedCountToMockSide(selectedCourses!);
     }
 
     private async Task SimulateSelectedCountChanged(CancellationToken cancellationToken)
@@ -62,9 +64,10 @@ public class MockHttpClientProvider : IHttpClientProvider
         {
             while (true)
             {
-                await Task.Delay(1500, cancellationToken);
+                await Task.Delay(3000, cancellationToken);
 
                 bool completed = true;
+
                 foreach (var course in selectableCourses!)
                 {
                     if (int.Parse(course.MockSideSelectedStudentCount!) < int.Parse(course.PlannedStudentCount!))
@@ -95,7 +98,7 @@ public class MockHttpClientProvider : IHttpClientProvider
     public async Task<ObservableCollection<CourseItem>?> FetchSelectableCoursesAsync(CancellationToken cancellationToken)
     {
         await Task.Delay(700, cancellationToken);
-        SyncMockSideSelectedCountToActual(ref selectableCourses!);
+        await SyncMockSideSelectedCountToActual(selectableCourses!);
 
         return selectableCourses!;
     }
@@ -103,28 +106,24 @@ public class MockHttpClientProvider : IHttpClientProvider
     public async Task<ObservableCollection<CourseItem>> FetchSelectedCoursesAsync(CancellationToken cancellationToken)
     {
         await Task.Delay(1000, cancellationToken);
-        SyncMockSideSelectedCountToActual(ref selectedCourses!);
+        await SyncMockSideSelectedCountToActual(selectedCourses!);
 
         return selectedCourses!;
     }
 
-    private void SyncMockSideSelectedCountToActual(ref ObservableCollection<CourseItem> courses)
+    private async Task SyncMockSideSelectedCountToActual(ObservableCollection<CourseItem> courses)
     {
         foreach (var course in courses)
         {
-            var ctx = SynchronizationContext.Current;
-
-            ctx?.Post(_ => course.SelectedStudentCount = course.MockSideSelectedStudentCount, null);
+            await dispatcher.InvokeAsync(() => course.SelectedStudentCount = course.MockSideSelectedStudentCount);
         }
     }
 
-    private void SyncActualSideSelectedCountToMockSide(ref ObservableCollection<CourseItem> courses)
+    private async Task SyncActualSideSelectedCountToMockSide(ObservableCollection<CourseItem> courses)
     {
         foreach (var course in courses)
         {
-            var ctx = SynchronizationContext.Current;
-
-            ctx?.Post(_ => course.MockSideSelectedStudentCount = course.SelectedStudentCount, null);
+            await dispatcher.InvokeAsync(() => course.MockSideSelectedStudentCount = course.SelectedStudentCount);
         }
     }
 
