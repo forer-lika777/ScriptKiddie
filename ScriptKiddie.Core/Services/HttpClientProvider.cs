@@ -195,16 +195,6 @@ public partial class HttpClientProvider : IHttpClientProvider
         return courses;
     }
 
-    public void SetSelectableCourses(ObservableCollection<CourseItem> courses)
-    {
-        throw new InvalidOperationException("设置可选课程是测试功能。不应当再此处调用。");
-    }
-
-    public void SetSelectedCourses(ObservableCollection<CourseItem> courses)
-    {
-        throw new InvalidOperationException("设置已选课程是测试功能。不应当再此处调用。");
-    }
-
     public async Task<int> FetchCourseSelectLimitCountAsync(CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, GET_COURSE_SELECT_PAGE_URL);

@@ -14,6 +14,7 @@ public sealed class CourseSelectTests
 {
     public TestContext TestContext { get; set; } = null!;
     public IServiceProvider Services { get; private set; } = null!;
+    private MockHttpClientProvider httpClientProvider = null!;
     private ILogger<CourseSelectTests> logger = null!;
     private WeakReferenceMessenger messenger = null!;
 
@@ -22,7 +23,6 @@ public sealed class CourseSelectTests
     {
         var services = new ServiceCollection();
 
-        // 1) 日志：输出到控制台 + 接到 TestContext
         services.AddLogging(b =>
         {
             b.AddConsole();
@@ -30,7 +30,6 @@ public sealed class CourseSelectTests
             b.SetMinimumLevel(LogLevel.Debug);
         });
 
-        // 2) 注册被测服务（按需改成你的类）
         services.AddSingleton<ICourseSelectService, CourseSelectService>();
         services.AddSingleton<IHttpClientProvider, MockHttpClientProvider>();
         services.AddSingleton<CourseListPageModel>();
@@ -56,6 +55,7 @@ public sealed class CourseSelectTests
         //AppServices.Initialize(Services);
 
         logger = Services.GetRequiredService<ILogger<CourseSelectTests>>();
+        httpClientProvider = (MockHttpClientProvider)Services.GetRequiredService<IHttpClientProvider>();
     }
 
     private SelectSchedule SetUpFutureSelectSchedule()
@@ -119,7 +119,7 @@ public sealed class CourseSelectTests
 
         var course = new CourseItem("12345678", "何意味何意味何意味", "23333333");
 
-        Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([course]);
+        httpClientProvider.SetSelectedCourses([course]);
 
         await Services.GetRequiredService<ICourseSelectService>().AddCourseAsync(course, schedule, OperationType.Withdraw);
 
@@ -149,7 +149,7 @@ public sealed class CourseSelectTests
 
         if (operationType == OperationType.Withdraw)
         {
-            Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([course]);
+            httpClientProvider.SetSelectedCourses([course]);
         }
 
         await Services.GetRequiredService<ICourseSelectService>().AddCourseAsync(course, schedule, operationType);
@@ -188,12 +188,12 @@ public sealed class CourseSelectTests
         if (operationType == OperationType.WithdrawToSelect)
         {
             var courseToWithdraw = new CourseItem("sdfgsdf", "dfg", "023cvds 023023vd");
-            Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([courseToWithdraw]);
+            httpClientProvider.SetSelectedCourses([courseToWithdraw]);
             actual = await Services.GetRequiredService<ICourseSelectService>().AddCourseAsync(course, courseToWithdraw, schedule);
         }
         else if (operationType == OperationType.Withdraw)
         {
-            Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([course]);
+            httpClientProvider.SetSelectedCourses([course]);
             actual = await Services.GetRequiredService<ICourseSelectService>().AddCourseAsync(course, schedule, operationType);
         }
         else if (operationType == OperationType.Select)
@@ -224,19 +224,19 @@ public sealed class CourseSelectTests
 
         messenger.Register<RequestConfirmWithdrawCourseMessage>(this, (r, msg) => msg.TaskCompletionSource.SetResult(courseToWithdraw));
 
-        Services.GetRequiredService<IHttpClientProvider>().SetSelectableCourses([course]);
+        httpClientProvider.SetSelectableCourses([course]);
 
         if (operationType == OperationType.Select)
         {
-            Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([]);
+            httpClientProvider.SetSelectedCourses([]);
         }
         else if (operationType == OperationType.Withdraw)
         {
-            Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([courseToWithdraw]);
+            httpClientProvider.SetSelectedCourses([courseToWithdraw]);
         }
         else if (operationType == OperationType.WithdrawToSelect)
         {
-            Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([courseToWithdraw, samplerCourse123123123123]);
+            httpClientProvider.SetSelectedCourses([courseToWithdraw, samplerCourse123123123123]);
         }
 
         var pageModel = Services.GetRequiredService<CourseListPageModel>();
@@ -246,7 +246,6 @@ public sealed class CourseSelectTests
 
         if (operationType == OperationType.Select)
         {
-            //Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([]);
             await pageModel.AddCourseCommand.ExecuteAsync(course);
 
             Assert.IsTrue(pageModel.CanModifyAutoRefresh);
@@ -259,7 +258,6 @@ public sealed class CourseSelectTests
         }
         else if (operationType == OperationType.Withdraw)
         {
-            //Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([courseToWithdraw]);
             await pageModel.WithdrawCourseCommand.ExecuteAsync(courseToWithdraw);
 
             Assert.IsTrue(pageModel.CanModifyAutoRefresh);
@@ -272,7 +270,6 @@ public sealed class CourseSelectTests
         }
         else if (operationType == OperationType.WithdrawToSelect)
         {
-            //Services.GetRequiredService<IHttpClientProvider>().SetSelectedCourses([courseToWithdraw, samplerCourse123123123123]);
             await pageModel.AddCourseCommand.ExecuteAsync(course);
 
             Assert.IsFalse(pageModel.CanModifyAutoRefresh);
@@ -284,6 +281,4 @@ public sealed class CourseSelectTests
             Assert.AreEqual(autoRefreshValue, pageModel.AutoRefresh);
         }
     }
-
-
 }
