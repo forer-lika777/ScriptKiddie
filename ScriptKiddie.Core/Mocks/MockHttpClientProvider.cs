@@ -80,7 +80,14 @@ public class MockHttpClientProvider : IHttpClientProvider
                 }
 
                 if (completed)
-                    return;
+                {
+                    foreach (var course in selectableCourses!)
+                    {
+                        int count = int.Parse(course.MockSideSelectedStudentCount!);
+                        count--;
+                        course.MockSideSelectedStudentCount = count.ToString();
+                    }
+                }
             }
         }
         catch (OperationCanceledException)
@@ -152,7 +159,7 @@ public class MockHttpClientProvider : IHttpClientProvider
                 {
                     return new HttpResponseMessage
                     {
-                        Content = new StringContent("不允许选课")
+                        Content = new StringContent("当前不允许选课")
                     };
                 }
 
@@ -212,7 +219,17 @@ public class MockHttpClientProvider : IHttpClientProvider
                 {
                     return new HttpResponseMessage
                     {
-                        Content = new StringContent("不允许退选")
+                        Content = new StringContent("当前不允许退选")
+                    };
+                }
+
+                var c = selectedCourses?.Where(x => x.Equals(course)).FirstOrDefault();
+
+                if (c is null)
+                {
+                    return new HttpResponseMessage
+                    {
+                        Content = new StringContent("没有找到课程。")
                     };
                 }
 
